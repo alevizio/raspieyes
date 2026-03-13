@@ -1,0 +1,7 @@
+# raspieyes configuration
+#
+# Videos go in the videos/ directory.
+# Add more by copying files there — they'll be picked up automatically.
+
+# Shuffle playlist? (yes/no)
+SHUFFLE=no

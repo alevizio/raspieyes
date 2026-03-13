@@ -1,0 +1,18 @@
+[Unit]
+Description=raspieyes video kiosk
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+Type=simple
+User=pi
+Environment=DISPLAY=:0
+Environment=WAYLAND_DISPLAY=wayland-1
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStartPre=/bin/sleep 10
+ExecStart=/home/pi/raspieyes/play.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

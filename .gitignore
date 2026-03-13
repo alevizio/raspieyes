@@ -1,0 +1,7 @@
+*.log
+videos/*.mp4
+videos/*.gif
+videos/*.webm
+videos/*.mkv
+videos/*.avi
+.DS_Store
