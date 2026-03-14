@@ -73,15 +73,6 @@ for v in "${VIDEO_FILES[@]}"; do
 done
 echo "Playlist: ${#PLAYLIST[@]} entries (each video x${REPEAT})"
 
-# Detect connected screens
-SCREENS=()
-if command -v wlr-randr &>/dev/null; then
-    while IFS= read -r name; do
-        SCREENS+=("$name")
-    done < <(wlr-randr | grep -oP '^[A-Z]+-[A-Z]+-\d+(?= )')
-fi
-echo "Detected ${#SCREENS[@]} screen(s): ${SCREENS[*]:-none}"
-
 # Common mpv flags
 MPV_BASE=(
     --fs
@@ -98,46 +89,103 @@ MPV_BASE=(
     --loop-playlist=inf
 )
 
-# Cleanup child processes on exit
-PIDS=()
-cleanup() {
-    for pid in "${PIDS[@]}"; do
-        kill "$pid" 2>/dev/null
-    done
-    wait 2>/dev/null
-}
-trap cleanup EXIT
-
 if ! command -v mpv &>/dev/null; then
     echo "ERROR: mpv not found. Run: sudo apt install mpv" >&2
     exit 1
 fi
 
-echo "Looping ${#VIDEO_FILES[@]} video(s) as playlist"
+# --- Functions ---
 
-if [[ ${#SCREENS[@]} -le 1 ]]; then
-    # Single screen — just exec mpv
-    echo "Launching mpv on single screen..."
-    exec mpv "${MPV_BASE[@]}" "${PLAYLIST[@]}"
-else
-    # Multiple screens — one mpv per screen, each plays full playlist
-    for i in "${!SCREENS[@]}"; do
-        SCREEN="${SCREENS[$i]}"
-        echo "Launching mpv on $SCREEN (screen $i)..."
-        mpv "${MPV_BASE[@]}" --fs-screen="$i" "${PLAYLIST[@]}" &
-        PIDS+=($!)
+# Detect currently connected screens
+detect_screens() {
+    local screens=()
+    if command -v wlr-randr &>/dev/null; then
+        while IFS= read -r name; do
+            screens+=("$name")
+        done < <(wlr-randr | grep -oP '^[A-Z]+-[A-Z]+-\d+(?= )')
+    fi
+    echo "${screens[@]:-}"
+}
+
+# Kill all running mpv child processes
+PIDS=()
+kill_all_mpv() {
+    for pid in "${PIDS[@]}"; do
+        kill "$pid" 2>/dev/null
     done
-    echo "All ${#SCREENS[@]} screens running"
-    # Wait for any mpv to exit, then restart all
-    while true; do
-        wait -n 2>/dev/null || true
-        echo "An mpv instance exited, restarting all at $(date)..."
-        cleanup
-        PIDS=()
-        sleep 1
-        for i in "${!SCREENS[@]}"; do
+    wait 2>/dev/null
+    PIDS=()
+}
+trap kill_all_mpv EXIT
+
+# Launch mpv on all detected screens
+launch_mpv() {
+    local -a screens
+    read -ra screens <<< "$(detect_screens)"
+    local count=${#screens[@]}
+
+    if [[ $count -eq 0 ]]; then
+        echo "  No screens detected"
+        return 1
+    fi
+
+    echo "  Detected $count screen(s): ${screens[*]}"
+
+    if [[ $count -eq 1 ]]; then
+        mpv "${MPV_BASE[@]}" "${PLAYLIST[@]}" &
+        PIDS+=($!)
+    else
+        for i in "${!screens[@]}"; do
             mpv "${MPV_BASE[@]}" --fs-screen="$i" "${PLAYLIST[@]}" &
             PIDS+=($!)
         done
+    fi
+    echo "  Launched ${#PIDS[@]} mpv instance(s)"
+    return 0
+}
+
+# Check if all mpv processes are still alive
+all_mpv_alive() {
+    for pid in "${PIDS[@]}"; do
+        if ! kill -0 "$pid" 2>/dev/null; then
+            return 1
+        fi
     done
-fi
+    return 0
+}
+
+# --- Main watchdog loop ---
+# Re-detects screens and restarts mpv on any change or crash.
+# Handles: monitor unplug, replug, mpv crash, etc.
+
+echo "Looping ${#VIDEO_FILES[@]} video(s) as playlist"
+LAST_SCREENS=""
+
+while true; do
+    CURRENT_SCREENS="$(detect_screens)"
+
+    # Restart mpv if: no mpv running, mpv crashed, or screens changed
+    if [[ ${#PIDS[@]} -eq 0 ]] || ! all_mpv_alive || [[ "$CURRENT_SCREENS" != "$LAST_SCREENS" ]]; then
+        if [[ ${#PIDS[@]} -gt 0 ]]; then
+            if [[ "$CURRENT_SCREENS" != "$LAST_SCREENS" ]]; then
+                echo "Screen change detected at $(date): was '$LAST_SCREENS' → now '$CURRENT_SCREENS'"
+            else
+                echo "An mpv instance exited at $(date), restarting..."
+            fi
+            kill_all_mpv
+            sleep 1
+        fi
+
+        LAST_SCREENS="$CURRENT_SCREENS"
+
+        if [[ -n "$CURRENT_SCREENS" ]]; then
+            echo "Starting playback at $(date)..."
+            launch_mpv || true
+        else
+            echo "Waiting for screens to connect..."
+        fi
+    fi
+
+    # Check every 3 seconds
+    sleep 3
+done
