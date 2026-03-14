@@ -4,4 +4,5 @@ videos/*.gif
 videos/*.webm
 videos/*.mkv
 videos/*.avi
+.stills/
 .DS_Store

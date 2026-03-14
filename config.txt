@@ -5,3 +5,9 @@
 
 # Shuffle playlist? (yes/no)
 SHUFFLE=no
+
+# How many times each video plays before switching to the next
+REPEAT=3
+
+# Seconds to hold still between different videos (0 = no pause)
+PAUSE=2

@@ -9,7 +9,7 @@ echo "=== raspieyes setup ==="
 # 1. Install mpv + unclutter (hide cursor)
 echo "[1/5] Installing packages..."
 sudo apt update -qq
-sudo apt install -y mpv unclutter-xfixes wlr-randr
+sudo apt install -y mpv unclutter-xfixes wlr-randr ffmpeg
 
 # 2. Set up videos directory
 echo "[2/5] Setting up videos directory..."

@@ -13,6 +13,8 @@ echo "=== raspieyes starting at $(date) ==="
 
 # Defaults
 SHUFFLE=no
+REPEAT=3
+PAUSE=2
 
 # Source config if it exists
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -59,8 +61,17 @@ if [[ ${#VIDEO_FILES[@]} -eq 0 ]]; then
     exit 1
 fi
 
-echo "raspieyes: playing ${#VIDEO_FILES[@]} video(s) from $VIDEOS_DIR"
+echo "raspieyes: found ${#VIDEO_FILES[@]} video(s) from $VIDEOS_DIR"
 for v in "${VIDEO_FILES[@]}"; do echo "  - $(basename "$v")"; done
+
+# Build playlist: each video repeated REPEAT times, then next video
+PLAYLIST=()
+for v in "${VIDEO_FILES[@]}"; do
+    for ((r=0; r<REPEAT; r++)); do
+        PLAYLIST+=("$v")
+    done
+done
+echo "Playlist: ${#PLAYLIST[@]} entries (each video x${REPEAT})"
 
 # Detect connected screens
 SCREENS=()
@@ -107,13 +118,13 @@ echo "Looping ${#VIDEO_FILES[@]} video(s) as playlist"
 if [[ ${#SCREENS[@]} -le 1 ]]; then
     # Single screen — just exec mpv
     echo "Launching mpv on single screen..."
-    exec mpv "${MPV_BASE[@]}" "${VIDEO_FILES[@]}"
+    exec mpv "${MPV_BASE[@]}" "${PLAYLIST[@]}"
 else
     # Multiple screens — one mpv per screen, each plays full playlist
     for i in "${!SCREENS[@]}"; do
         SCREEN="${SCREENS[$i]}"
         echo "Launching mpv on $SCREEN (screen $i)..."
-        mpv "${MPV_BASE[@]}" --fs-screen="$i" "${VIDEO_FILES[@]}" &
+        mpv "${MPV_BASE[@]}" --fs-screen="$i" "${PLAYLIST[@]}" &
         PIDS+=($!)
     done
     echo "All ${#SCREENS[@]} screens running"
@@ -125,7 +136,7 @@ else
         PIDS=()
         sleep 1
         for i in "${!SCREENS[@]}"; do
-            mpv "${MPV_BASE[@]}" --fs-screen="$i" "${VIDEO_FILES[@]}" &
+            mpv "${MPV_BASE[@]}" --fs-screen="$i" "${PLAYLIST[@]}" &
             PIDS+=($!)
         done
     done
