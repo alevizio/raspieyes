@@ -11,6 +11,15 @@ echo "[1/5] Installing packages..."
 sudo apt update -qq
 sudo apt install -y mpv unclutter-xfixes wlr-randr ffmpeg
 
+# Install eye tracking dependencies if camera is connected
+if [[ -e /dev/video0 ]] || ls /dev/video* &>/dev/null 2>&1; then
+    echo "  Camera detected, installing tracking packages..."
+    sudo apt install -y python3-picamera2 python3-opencv
+else
+    echo "  No camera detected, skipping tracking packages"
+    echo "  (run 'sudo apt install python3-picamera2 python3-opencv' later if needed)"
+fi
+
 # 2. Set up videos directory
 echo "[2/5] Setting up videos directory..."
 mkdir -p "$VIDEOS_DIR"

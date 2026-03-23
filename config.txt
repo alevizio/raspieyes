@@ -11,3 +11,12 @@ REPEAT=3
 
 # Seconds to hold still between different videos (0 = no pause)
 PAUSE=2
+
+# --- Eye Tracking ---
+# React to people with camera (yes/no)
+TRACKING=no
+
+# Which videos to play for each state (comma-separated basenames, or "all")
+# Only used when TRACKING=yes
+IDLE_VIDEOS=eye.mp4,eye2.mp4,eye3.mp4
+DETECTED_VIDEOS=eye4.mp4,eye5.mp4,eye6.mp4

@@ -15,6 +15,10 @@ echo "=== raspieyes starting at $(date) ==="
 SHUFFLE=no
 REPEAT=3
 PAUSE=2
+TRACKING=no
+IDLE_VIDEOS=all
+DETECTED_VIDEOS=all
+STATE_FILE="/tmp/raspieyes_state"
 
 # Source config if it exists
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -73,6 +77,54 @@ for v in "${VIDEO_FILES[@]}"; do
 done
 echo "Playlist: ${#PLAYLIST[@]} entries (each video x${REPEAT})"
 
+# --- Tracking: build separate idle/detected playlists ---
+IDLE_PLAYLIST=()
+DETECTED_PLAYLIST=()
+CURRENT_STATE="idle"
+
+if [[ "$TRACKING" == "yes" ]]; then
+    echo "Eye tracking enabled"
+
+    # Helper: filter videos by comma-separated basename list (or "all")
+    filter_videos() {
+        local spec="$1"
+        local -a result=()
+        if [[ "$spec" == "all" ]]; then
+            result=("${VIDEO_FILES[@]}")
+        else
+            IFS=',' read -ra names <<< "$spec"
+            for name in "${names[@]}"; do
+                name="$(echo "$name" | xargs)"  # trim whitespace
+                for v in "${VIDEO_FILES[@]}"; do
+                    if [[ "$(basename "$v")" == "$name" ]]; then
+                        result+=("$v")
+                        break
+                    fi
+                done
+            done
+        fi
+        printf '%s\n' "${result[@]}"
+    }
+
+    # Build idle playlist
+    while IFS= read -r v; do
+        [[ -z "$v" ]] && continue
+        for ((r=0; r<REPEAT; r++)); do IDLE_PLAYLIST+=("$v"); done
+    done < <(filter_videos "$IDLE_VIDEOS")
+
+    # Build detected playlist
+    while IFS= read -r v; do
+        [[ -z "$v" ]] && continue
+        for ((r=0; r<REPEAT; r++)); do DETECTED_PLAYLIST+=("$v"); done
+    done < <(filter_videos "$DETECTED_VIDEOS")
+
+    echo "  Idle playlist: ${#IDLE_PLAYLIST[@]} entries"
+    echo "  Detected playlist: ${#DETECTED_PLAYLIST[@]} entries"
+
+    # Start with idle playlist
+    PLAYLIST=("${IDLE_PLAYLIST[@]}")
+fi
+
 # Common mpv flags
 MPV_BASE=(
     --fs
@@ -109,6 +161,18 @@ detect_screens() {
 
 # Kill all running mpv child processes
 PIDS=()
+TRACKER_PID=""
+cleanup_all() {
+    for pid in "${PIDS[@]}"; do
+        kill "$pid" 2>/dev/null
+    done
+    [[ -n "$TRACKER_PID" ]] && kill "$TRACKER_PID" 2>/dev/null
+    wait 2>/dev/null
+    PIDS=()
+}
+trap cleanup_all EXIT
+
+# Alias for internal use (keeps existing call sites working)
 kill_all_mpv() {
     for pid in "${PIDS[@]}"; do
         kill "$pid" 2>/dev/null
@@ -116,7 +180,6 @@ kill_all_mpv() {
     wait 2>/dev/null
     PIDS=()
 }
-trap kill_all_mpv EXIT
 
 # Launch mpv on all detected screens
 launch_mpv() {
@@ -158,6 +221,19 @@ all_mpv_alive() {
 # Re-detects screens and restarts mpv on any change or crash.
 # Handles: monitor unplug, replug, mpv crash, etc.
 
+# --- Launch eye tracker if enabled ---
+if [[ "$TRACKING" == "yes" ]]; then
+    if command -v python3 &>/dev/null && [[ -f "$SCRIPT_DIR/eye_tracker.py" ]]; then
+        echo "Starting eye tracker..."
+        python3 "$SCRIPT_DIR/eye_tracker.py" --state-file "$STATE_FILE" &
+        TRACKER_PID=$!
+        echo "  Tracker PID: $TRACKER_PID"
+    else
+        echo "WARNING: TRACKING=yes but eye_tracker.py or python3 not found, disabling"
+        TRACKING=no
+    fi
+fi
+
 echo "Looping ${#VIDEO_FILES[@]} video(s) as playlist"
 LAST_SCREENS=""
 
@@ -183,6 +259,23 @@ while true; do
             launch_mpv || true
         else
             echo "Waiting for screens to connect..."
+        fi
+    fi
+
+    # --- Check eye tracker state ---
+    if [[ "$TRACKING" == "yes" ]] && [[ -f "$STATE_FILE" ]]; then
+        NEW_STATE=$(cat "$STATE_FILE" 2>/dev/null || echo "idle")
+        if [[ "$NEW_STATE" != "$CURRENT_STATE" ]]; then
+            echo "State change: $CURRENT_STATE -> $NEW_STATE at $(date)"
+            CURRENT_STATE="$NEW_STATE"
+            if [[ "$CURRENT_STATE" == "detected" ]]; then
+                PLAYLIST=("${DETECTED_PLAYLIST[@]}")
+            else
+                PLAYLIST=("${IDLE_PLAYLIST[@]}")
+            fi
+            kill_all_mpv
+            sleep 0.5
+            launch_mpv || true
         fi
     fi
 
