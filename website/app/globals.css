@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #000000;
+  --text: #f0f0f0;
+  --accent: #4a8fd4;
+  --accent-glow: #6bb3ff;
+  --muted: #666;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
