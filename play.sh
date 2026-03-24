@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$SCRIPT_DIR/config.txt"
@@ -19,6 +19,9 @@ TRACKING=no
 IDLE_VIDEOS=all
 DETECTED_VIDEOS=all
 STATE_FILE="/tmp/raspieyes_state"
+RENDER_MODE=video
+EYE_COLOR=blue
+DETECTION_MODE=motion
 
 # Source config if it exists
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -50,6 +53,61 @@ if [[ -z "${DISPLAY:-}" ]]; then
 fi
 
 echo "Environment: WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-unset} DISPLAY=${DISPLAY:-unset} XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-unset}"
+
+# --- Parallax render mode ---
+if [[ "${RENDER_MODE:-video}" == "parallax" ]]; then
+    echo "Render mode: parallax (real-time eye renderer)"
+
+    # Build renderer args from config
+    RENDERER_ARGS=(
+        --eye-color "${EYE_COLOR:-blue}"
+        --state-file "$STATE_FILE"
+    )
+    [[ -n "${SCLERA_PARALLAX:-}" ]] && RENDERER_ARGS+=(--sclera-parallax "$SCLERA_PARALLAX")
+    [[ -n "${IRIS_PARALLAX:-}" ]] && RENDERER_ARGS+=(--iris-parallax "$IRIS_PARALLAX")
+    [[ -n "${PUPIL_PARALLAX:-}" ]] && RENDERER_ARGS+=(--pupil-parallax "$PUPIL_PARALLAX")
+    [[ -n "${MAX_OFFSET:-}" ]] && RENDERER_ARGS+=(--max-offset "$MAX_OFFSET")
+    [[ -n "${LERP_SPEED:-}" ]] && RENDERER_ARGS+=(--lerp-speed "$LERP_SPEED")
+    RENDERER_ARGS+=(--detection-mode "${DETECTION_MODE:-motion}")
+    [[ -n "${MIN_CONTOUR_AREA:-}" ]] && RENDERER_ARGS+=(--min-contour-area "$MIN_CONTOUR_AREA")
+    [[ "${TRACKING:-no}" != "yes" ]] && RENDERER_ARGS+=(--no-camera)
+    [[ "${USB_WEBCAM:-no}" == "yes" ]] && RENDERER_ARGS+=(--test-webcam)
+
+    # Mirror both screens at same position so one renderer drives both
+    if command -v wlr-randr &>/dev/null; then
+        wlr-randr --output HDMI-A-1 --pos 0,0 --output HDMI-A-2 --pos 0,0 2>/dev/null
+        sleep 1  # let compositor settle
+    fi
+
+    RENDERER_ARGS+=(--single-eye)
+
+    RENDERER_PID=""
+    cleanup_renderer() {
+        [[ -n "$RENDERER_PID" ]] && kill "$RENDERER_PID" 2>/dev/null
+        wait 2>/dev/null
+    }
+    trap cleanup_renderer EXIT
+
+    # Launch renderer
+    python3 "$SCRIPT_DIR/eye_renderer.py" "${RENDERER_ARGS[@]}" &
+    RENDERER_PID=$!
+    echo "  Renderer PID: $RENDERER_PID"
+
+    # Simple watchdog: restart if renderer crashes
+    while true; do
+        if ! kill -0 "$RENDERER_PID" 2>/dev/null; then
+            echo "Renderer exited at $(date), restarting..."
+            sleep 2
+            python3 "$SCRIPT_DIR/eye_renderer.py" "${RENDERER_ARGS[@]}" &
+            RENDERER_PID=$!
+            echo "  Renderer PID: $RENDERER_PID"
+        fi
+        sleep 3
+    done
+    # Never reaches here — the while loop above runs until the script is killed
+fi
+
+# --- Video mode (original) ---
 
 # Build list of video files
 VIDEO_FILES=()
@@ -125,6 +183,9 @@ if [[ "$TRACKING" == "yes" ]]; then
     PLAYLIST=("${IDLE_PLAYLIST[@]}")
 fi
 
+# IPC sockets for playlist switching without restart
+MPV_SOCKETS=()
+
 # Common mpv flags
 MPV_BASE=(
     --fs
@@ -133,7 +194,7 @@ MPV_BASE=(
     --no-osc
     --no-osd-bar
     --force-window=yes
-    --idle=no
+    --idle=yes
     --background-color='#000000'
     --vo=gpu
     --gpu-api=opengl
@@ -176,8 +237,8 @@ trap cleanup_all EXIT
 kill_all_mpv() {
     for pid in "${PIDS[@]}"; do
         kill "$pid" 2>/dev/null
+        wait "$pid" 2>/dev/null
     done
-    wait 2>/dev/null
     PIDS=()
 }
 
@@ -193,17 +254,44 @@ launch_mpv() {
     fi
 
     echo "  Detected $count screen(s): ${screens[*]}"
+    MPV_SOCKETS=()
 
     if [[ $count -eq 1 ]]; then
-        mpv "${MPV_BASE[@]}" "${PLAYLIST[@]}" &
+        local sock="/tmp/mpv-sock-0"
+        mpv "${MPV_BASE[@]}" --input-ipc-server="$sock" "${PLAYLIST[@]}" &
         PIDS+=($!)
+        MPV_SOCKETS+=("$sock")
     else
         for i in "${!screens[@]}"; do
-            mpv "${MPV_BASE[@]}" --fs-screen="$i" "${PLAYLIST[@]}" &
+            local sock="/tmp/mpv-sock-$i"
+            mpv "${MPV_BASE[@]}" --input-ipc-server="$sock" --fs-screen="$i" "${PLAYLIST[@]}" &
             PIDS+=($!)
+            MPV_SOCKETS+=("$sock")
         done
     fi
     echo "  Launched ${#PIDS[@]} mpv instance(s)"
+    return 0
+}
+
+# Switch playlist via IPC without restarting mpv (no black screen)
+switch_playlist_ipc() {
+    local -a new_playlist=("${PLAYLIST[@]}")
+
+    for sock in "${MPV_SOCKETS[@]}"; do
+        if [[ ! -S "$sock" ]]; then
+            echo "  IPC socket $sock missing, falling back to restart"
+            return 1
+        fi
+
+        # Load first video with "replace" — immediately starts playing it
+        echo "{ \"command\": [\"loadfile\", \"${new_playlist[0]}\", \"replace\"] }" | socat - "$sock" 2>/dev/null
+
+        # Append the rest
+        for ((i=1; i<${#new_playlist[@]}; i++)); do
+            echo "{ \"command\": [\"loadfile\", \"${new_playlist[$i]}\", \"append\"] }" | socat - "$sock" 2>/dev/null
+        done
+    done
+    echo "  Switched playlist via IPC (${#new_playlist[@]} entries)"
     return 0
 }
 
@@ -273,9 +361,14 @@ while true; do
             else
                 PLAYLIST=("${IDLE_PLAYLIST[@]}")
             fi
-            kill_all_mpv
-            sleep 0.5
-            launch_mpv || true
+            # Try seamless IPC switch first, fall back to restart
+            if ! switch_playlist_ipc 2>/dev/null; then
+                echo "  IPC failed, restarting mpv..."
+                kill_all_mpv
+                sleep 1
+                LAST_SCREENS="$(detect_screens)"
+                launch_mpv || echo "  WARNING: launch_mpv failed"
+            fi
         fi
     fi
 

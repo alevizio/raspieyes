@@ -14,9 +14,36 @@ PAUSE=2
 
 # --- Eye Tracking ---
 # React to people with camera (yes/no)
-TRACKING=no
+TRACKING=yes
 
 # Which videos to play for each state (comma-separated basenames, or "all")
 # Only used when TRACKING=yes
 IDLE_VIDEOS=eye.mp4,eye2.mp4,eye3.mp4
 DETECTED_VIDEOS=eye4.mp4,eye5.mp4,eye6.mp4
+
+# --- Render Mode ---
+# "video" = play video files with mpv (original mode)
+# "parallax" = real-time rendered parallax eyes that follow viewers
+RENDER_MODE=parallax
+
+# --- Eye Renderer Settings (only used when RENDER_MODE=parallax) ---
+# Iris color: blue, green, brown, amber, gray
+EYE_COLOR=blue
+
+# Detection method: "motion" (MOG2 background subtraction, works in low light)
+#                   "face" (Haar cascade, needs good lighting)
+DETECTION_MODE=motion
+
+# Use USB webcam instead of Pi Camera Module (yes/no)
+# Set to "yes" if you have a USB webcam plugged in (e.g., Logitech C925e)
+USB_WEBCAM=yes
+# Minimum contour area for motion detection (pixels² at 320x240, default: 300)
+# MIN_CONTOUR_AREA=300
+# Presence timeout: seconds to hold eye position after losing track (default: 15)
+# PRESENCE_TIMEOUT=15
+# Parallax intensity (uncomment to customize)
+# SCLERA_PARALLAX=0.05
+# IRIS_PARALLAX=0.4
+# PUPIL_PARALLAX=0.8
+# MAX_OFFSET=120
+# LERP_SPEED=5.0
