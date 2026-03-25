@@ -158,7 +158,7 @@ const FaqSection = () => {
     <section className="py-24 px-6 max-w-3xl mx-auto">
       <FadeIn>
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-          Common <em className="italic text-[#8ab4f8] font-[Datatype]">Questions</em>
+          Common <em className="italic text-[#004C7C] font-[Datatype]">Questions</em>
         </h2>
         <p className="text-[#9aa0a6] text-center text-lg mb-14 max-w-xl mx-auto">
           Everything else you might want to know.
@@ -214,7 +214,7 @@ export default function Home() {
             Move your mouse — the eyes are watching
           </p>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
-            raspi<em className="not-italic text-[#8ab4f8]">eyes</em>
+            raspi<em className="not-italic text-[#004C7C]">eyes</em>
           </h1>
           <p className="text-lg md:text-2xl text-[#9aa0a6] max-w-2xl mx-auto leading-relaxed whitespace-nowrap">
             Lifelike eyes that follow you. <span className="text-[#bdc1c6]">Built with Raspberry Pi.</span>
@@ -256,7 +256,7 @@ export default function Home() {
       <section className="py-24 px-6 max-w-5xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            What it <em className="italic text-[#8ab4f8] font-[Datatype]">does</em>
+            What it <em className="italic text-[#004C7C] font-[Datatype]">does</em>
           </h2>
           <p className="text-[#9aa0a6] text-center text-lg mb-16 max-w-xl mx-auto">
             Real-time rendered eyes that react to everything around them.
@@ -286,7 +286,7 @@ export default function Home() {
       <section id="build" className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Build Your <em className="italic text-[#8ab4f8] font-[Datatype]">Own</em>
+            Build Your <em className="italic text-[#004C7C] font-[Datatype]">Own</em>
           </h2>
           <p className="text-[#9aa0a6] text-center text-lg mb-20 max-w-xl mx-auto">
             Everything you need to make a pair of tracking eyes.
@@ -329,12 +329,12 @@ export default function Home() {
               <FadeIn key={s.step} delay={i * 100}>
                 <div className="relative mb-16 last:mb-0">
                   {/* Circle on timeline */}
-                  <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#8ab4f8]/20 border-2 border-[#8ab4f8]/50 flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8ab4f8]" />
+                  <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#004C7C]" />
                   </span>
                   <div className="p-5 rounded-xl bg-transparent border border-[#303134]/40">
                     <h4 className="font-medium mb-1.5 text-[#e3e3e3]">
-                      <span className="text-[#8ab4f8]/70 mr-2 text-sm">0{s.step}</span>
+                      <span className="text-[#004C7C]/70 mr-2 text-sm">0{s.step}</span>
                       {s.title}
                     </h4>
                     {s.desc && (
@@ -357,7 +357,7 @@ export default function Home() {
       <section className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Built <em className="italic text-[#8ab4f8] font-[Datatype]">With</em>
+            Built <em className="italic text-[#004C7C] font-[Datatype]">With</em>
           </h2>
           <p className="text-[#9aa0a6] text-center text-lg mb-12 max-w-xl mx-auto">
             Open source projects that made this possible.
@@ -374,7 +374,7 @@ export default function Home() {
                 className="group flex items-start gap-3 p-5 rounded-xl bg-transparent border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
               >
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-mono text-[#8ab4f8] group-hover:text-[#aecbfa] transition-colors">
+                  <span className="text-sm font-mono text-[#004C7C] group-hover:text-[#006399] transition-colors">
                     {r.name}
                   </span>
                   <span className="block text-[#9aa0a6] text-xs mt-1.5 leading-relaxed">
@@ -398,7 +398,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.04),transparent_60%)]" />
         <FadeIn className="relative text-center">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Ready to <em className="italic text-[#8ab4f8] font-[Datatype]">build</em>?
+            Ready to <em className="italic text-[#004C7C] font-[Datatype]">build</em>?
           </h2>
           <p className="text-[#9aa0a6] text-lg mb-10 max-w-md mx-auto">
             Clone the repo, flash a Pi, and bring your art to life.
