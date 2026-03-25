@@ -4,6 +4,16 @@ import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 
 const TAU = Math.PI * 2;
 
+// Seeded PRNG — stable random per frame so stipple doesn't flicker
+const mulberry32 = (seed: number) => {
+  return () => {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+};
+
 export interface EyeHandle {
   setTarget: (x: number, y: number) => void;
 }
@@ -32,6 +42,90 @@ const DEFAULT_CONFIG: EyeConfig = {
   maxOffset: 0.35,
 };
 
+// --- Hand-drawn rendering helpers ---
+
+const drawRoughCircle = (
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number, radius: number,
+  jitter: number, segments: number, rng: () => number
+) => {
+  ctx.beginPath();
+  for (let i = 0; i <= segments; i++) {
+    const a = (i / segments) * TAU;
+    const r = radius + Math.sin(a * 7) * jitter + (rng() - 0.5) * jitter * 0.8;
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+};
+
+const drawStipple = (
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number, radius: number,
+  count: number, dotSize: number, rng: () => number,
+  falloff: number = 1.0 // 0 = uniform, 1 = dense center
+) => {
+  for (let i = 0; i < count; i++) {
+    const a = rng() * TAU;
+    // Weighted radius — more dots near center
+    const t = rng();
+    const r = radius * (falloff > 0 ? Math.pow(t, falloff * 0.5) : t);
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r;
+    // Alpha fades toward edge
+    const edgeFade = 1.0 - (r / radius) * 0.6;
+    ctx.globalAlpha = edgeFade * (0.4 + rng() * 0.5);
+    ctx.fillRect(x, y, dotSize + rng() * dotSize, dotSize + rng() * dotSize);
+  }
+  ctx.globalAlpha = 1;
+};
+
+const drawCrosshatch = (
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number, innerR: number, outerR: number,
+  count: number, rng: () => number
+) => {
+  // Radial strokes
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * TAU + (rng() - 0.5) * 0.04;
+    const r1 = innerR + rng() * (outerR - innerR) * 0.2;
+    const r2 = innerR + 0.3 * (outerR - innerR) + rng() * (outerR - innerR) * 0.65;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    // Slight curve via quadratic
+    const midA = a + (rng() - 0.5) * 0.06;
+    const midR = (r1 + r2) * 0.5;
+    ctx.quadraticCurveTo(
+      cx + Math.cos(midA) * midR,
+      cy + Math.sin(midA) * midR,
+      cx + Math.cos(a + (rng() - 0.5) * 0.03) * r2,
+      cy + Math.sin(a + (rng() - 0.5) * 0.03) * r2
+    );
+    ctx.lineWidth = 0.5 + rng() * 1.2;
+    ctx.globalAlpha = 0.3 + rng() * 0.5;
+    ctx.stroke();
+  }
+
+  // Concentric arc hatching
+  const rings = 5 + Math.floor(rng() * 3);
+  for (let r = 0; r < rings; r++) {
+    const ringR = innerR + ((r + 0.5) / rings) * (outerR - innerR);
+    const arcCount = 8 + Math.floor(rng() * 6);
+    for (let a = 0; a < arcCount; a++) {
+      const startA = rng() * TAU;
+      const sweep = 0.15 + rng() * 0.35;
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringR + (rng() - 0.5) * 2, startA, startA + sweep);
+      ctx.lineWidth = 0.4 + rng() * 0.8;
+      ctx.globalAlpha = 0.15 + rng() * 0.3;
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+};
+
 export const Eye = forwardRef<EyeHandle, {
   className?: string;
   config?: EyeConfig;
@@ -49,7 +143,6 @@ export const Eye = forwardRef<EyeHandle, {
   const isLeftRef = useRef(isLeft);
   isLeftRef.current = isLeft;
 
-  // Expose setTarget so parent can update without re-rendering
   useImperativeHandle(ref, () => ({
     setTarget: (x: number, y: number) => {
       targetRef.current = { x, y };
@@ -61,7 +154,7 @@ export const Eye = forwardRef<EyeHandle, {
     currentY: 0,
     pupilDilation: 1.0,
     blinkProgress: 0,
-    blinkPhase: 0 as number, // 0=idle, 1=closing, 2=opening
+    blinkPhase: 0 as number,
     blinkTimer: 0,
     nextBlink: 3 + Math.random() * 4,
     breatheTime: Math.random() * 100,
@@ -70,14 +163,12 @@ export const Eye = forwardRef<EyeHandle, {
     saccadeTimer: 0,
   });
 
-  // Single rAF loop that never restarts — reads from refs
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // DPI scaling
     const dpr = window.devicePixelRatio || 1;
     const logicalSize = DEFAULT_CONFIG.size;
     canvas.width = logicalSize * dpr;
@@ -90,20 +181,14 @@ export const Eye = forwardRef<EyeHandle, {
     const loop = (now: number) => {
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
-
-      try {
-        draw(ctx, dt);
-      } catch {
-        // Skip frame on error, don't kill the loop
-      }
-
+      try { draw(ctx, dt); } catch { /* skip frame */ }
       frameId = requestAnimationFrame(loop);
     };
 
     frameId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Never restarts — reads current values from refs
+  }, []);
 
   const draw = (ctx: CanvasRenderingContext2D, dt: number) => {
     const anim = animRef.current;
@@ -118,12 +203,11 @@ export const Eye = forwardRef<EyeHandle, {
     const irisR = size * irisRatio;
     const pupilR = size * pupilRatio;
 
-    // Lerp toward target
+    // --- Animation (identical to before) ---
     const factor = Math.min(1, 8.0 * dt);
     anim.currentX += (tgt.x - anim.currentX) * factor;
     anim.currentY += (tgt.y - anim.currentY) * factor;
 
-    // Micro-saccades
     anim.saccadeTimer += dt;
     if (anim.saccadeTimer > 0.3) {
       anim.saccadeTimer = 0;
@@ -135,223 +219,193 @@ export const Eye = forwardRef<EyeHandle, {
       anim.saccadeY *= 1 - Math.min(1, 6 * dt);
     }
 
-    // Breathing pupil
     anim.breatheTime += dt;
     const breathe = Math.sin(anim.breatheTime * 0.2 * TAU) * 0.03;
 
-    // Blink — explicit state machine: 0=idle, 1=closing, 2=opening
     if (anim.blinkPhase === 0) {
-      // Idle — waiting for next blink
       anim.blinkTimer += dt;
       anim.blinkProgress = 0;
       if (anim.blinkTimer > anim.nextBlink) {
-        anim.blinkPhase = 1; // start closing
+        anim.blinkPhase = 1;
         anim.blinkTimer = 0;
         anim.nextBlink = 3 + Math.random() * 6;
       }
     } else if (anim.blinkPhase === 1) {
-      // Closing
       anim.blinkProgress = Math.min(1, anim.blinkProgress + dt * 10);
-      if (anim.blinkProgress >= 1) {
-        anim.blinkPhase = 2; // start opening
-      }
+      if (anim.blinkProgress >= 1) anim.blinkPhase = 2;
     } else {
-      // Opening
       anim.blinkProgress = Math.max(0, anim.blinkProgress - dt * 7);
-      if (anim.blinkProgress <= 0) {
-        anim.blinkPhase = 0; // back to idle
-      }
+      if (anim.blinkProgress <= 0) anim.blinkPhase = 0;
     }
 
-    // Offsets
     const rawX = (anim.currentX + anim.saccadeX) * maxOffset * size;
     const rawY = (anim.currentY + anim.saccadeY) * maxOffset * size;
     const crossEye = left ? 8 : -8;
 
-    // Clear
+    // Seeded RNG — stable per frame so stipple doesn't flicker
+    const rng = mulberry32(42);
+
+    // --- Clear (transparent) ---
     ctx.clearRect(0, 0, size, size);
 
-    // --- Sclera ---
+    // --- Sclera (stippled white) ---
     const sDx = rawX * parallax.sclera;
     const sDy = rawY * parallax.sclera;
-    const scleraGrad = ctx.createRadialGradient(
-      cx + sDx - scleraR * 0.25,
-      cy + sDy - scleraR * 0.3,
-      scleraR * 0.1,
-      cx + sDx,
-      cy + sDy,
-      scleraR
-    );
-    scleraGrad.addColorStop(0, "#ffffff");
-    scleraGrad.addColorStop(0.6, cfg.scleraColor);
-    scleraGrad.addColorStop(0.85, "#c8c0b8");
-    scleraGrad.addColorStop(1, "#8a827a");
-    ctx.beginPath();
-    ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
-    ctx.fillStyle = scleraGrad;
-    ctx.fill();
+    const scleraCx = cx + sDx;
+    const scleraCy = cy + sDy;
 
-    // Clip everything inside the eye to sclera bounds
+    // Rough sclera outline
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
+    drawRoughCircle(ctx, scleraCx, scleraCy, scleraR, 2.5, 120, rng);
     ctx.clip();
 
-    // Sclera shadow ring
-    const shadowGrad = ctx.createRadialGradient(
-      cx + sDx, cy + sDy, irisR * 0.9,
-      cx + sDx, cy + sDy, irisR * 1.4
-    );
-    shadowGrad.addColorStop(0, "rgba(10,5,15,0.5)");
-    shadowGrad.addColorStop(1, "rgba(10,5,15,0)");
-    ctx.beginPath();
-    ctx.arc(cx + sDx, cy + sDy, irisR * 1.4, 0, TAU);
-    ctx.fillStyle = shadowGrad;
-    ctx.fill();
+    // Sclera fill — stipple dots creating the white eyeball
+    ctx.fillStyle = "#d8d8d0";
+    drawStipple(ctx, scleraCx, scleraCy, scleraR, 2800, 1.5, rng, 0.3);
 
-    // Veins
-    ctx.save();
-    ctx.globalAlpha = 0.15;
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * TAU + 0.3;
-      const startR = scleraR * 0.75;
+    // Denser white near center
+    ctx.fillStyle = "#e8e8e4";
+    drawStipple(ctx, scleraCx, scleraCy, scleraR * 0.6, 800, 1.8, rng, 0.5);
+
+    // Edge shadow — denser dark dots near rim
+    ctx.fillStyle = "#1a1a1a";
+    for (let i = 0; i < 600; i++) {
+      const a = rng() * TAU;
+      const r = scleraR * (0.75 + rng() * 0.25);
+      const x = scleraCx + Math.cos(a) * r;
+      const y = scleraCy + Math.sin(a) * r;
+      ctx.globalAlpha = 0.1 + rng() * 0.25;
+      const ds = 1 + rng() * 1.5;
+      ctx.fillRect(x, y, ds, ds);
+    }
+    ctx.globalAlpha = 1;
+
+    // --- Veins (scratchy white lines) ---
+    ctx.strokeStyle = "#888880";
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * TAU + rng() * 0.4;
+      const startR = scleraR * 0.95;
       ctx.beginPath();
       ctx.moveTo(
-        cx + sDx + Math.cos(angle) * startR,
-        cy + sDy + Math.sin(angle) * startR
+        scleraCx + Math.cos(angle) * startR,
+        scleraCy + Math.sin(angle) * startR
       );
-      for (let s = 0; s < 5; s++) {
-        const frac = s / 5;
-        const r = startR - frac * scleraR * 0.3;
-        const a = angle + Math.sin(frac * Math.PI * 2) * 0.15;
+      for (let s = 0; s < 6; s++) {
+        const frac = (s + 1) / 6;
+        const r = startR - frac * scleraR * 0.35;
+        const a = angle + Math.sin(frac * Math.PI * 3) * 0.12 + (rng() - 0.5) * 0.08;
         ctx.lineTo(
-          cx + sDx + Math.cos(a) * r,
-          cy + sDy + Math.sin(a) * r
+          scleraCx + Math.cos(a) * r,
+          scleraCy + Math.sin(a) * r
         );
       }
-      ctx.strokeStyle = "#b03030";
-      ctx.lineWidth = 1.5 - i * 0.1;
+      ctx.lineWidth = 0.3 + rng() * 0.8;
+      ctx.globalAlpha = 0.08 + rng() * 0.12;
       ctx.stroke();
     }
-    ctx.restore();
+    ctx.globalAlpha = 1;
 
-    // --- Iris ---
+    // --- Iris (crosshatched) ---
     const iDx = rawX * parallax.iris + crossEye;
     const iDy = rawY * parallax.iris;
-    const irisGrad = ctx.createRadialGradient(
-      cx + iDx, cy + iDy, pupilR * 0.8,
-      cx + iDx, cy + iDy, irisR
-    );
-    irisGrad.addColorStop(0, cfg.irisColors[2]);
-    irisGrad.addColorStop(0.4, cfg.irisColors[1]);
-    irisGrad.addColorStop(0.75, cfg.irisColors[0]);
-    irisGrad.addColorStop(1, "#0a1a30");
+    const irisCx = cx + iDx;
+    const irisCy = cy + iDy;
+
+    // Dark iris base circle
+    ctx.fillStyle = "#181818";
     ctx.beginPath();
-    ctx.arc(cx + iDx, cy + iDy, irisR, 0, TAU);
-    ctx.fillStyle = irisGrad;
+    ctx.arc(irisCx, irisCy, irisR, 0, TAU);
     ctx.fill();
 
-    // Iris fibers
-    ctx.save();
-    ctx.globalAlpha = 0.3;
-    for (let i = 0; i < 60; i++) {
-      const angle = (i / 60) * TAU;
-      const innerR = pupilR * 1.1 + Math.random() * irisR * 0.1;
-      const outerR = irisR * (0.6 + Math.random() * 0.35);
-      ctx.beginPath();
-      ctx.moveTo(
-        cx + iDx + Math.cos(angle) * innerR,
-        cy + iDy + Math.sin(angle) * innerR
-      );
-      ctx.lineTo(
-        cx + iDx + Math.cos(angle + 0.02) * outerR,
-        cy + iDy + Math.sin(angle + 0.02) * outerR
-      );
-      const brightness = 120 + Math.floor(Math.random() * 100);
-      ctx.strokeStyle = `rgba(${brightness},${brightness + 40},${brightness + 80},0.4)`;
-      ctx.lineWidth = 1 + Math.random();
-      ctx.stroke();
-    }
-    ctx.restore();
+    // Iris ring — stipple to create the mid-tone
+    ctx.fillStyle = "#999990";
+    drawStipple(ctx, irisCx, irisCy, irisR, 1200, 1.2, rng, 0.2);
 
-    // Iris gloss
-    const glossGrad = ctx.createRadialGradient(
-      cx + iDx - irisR * 0.2, cy + iDy - irisR * 0.25, 0,
-      cx + iDx - irisR * 0.2, cy + iDy - irisR * 0.25, irisR * 0.5
-    );
-    glossGrad.addColorStop(0, "rgba(255,255,255,0.15)");
-    glossGrad.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.beginPath();
-    ctx.arc(cx + iDx, cy + iDy, irisR, 0, TAU);
-    ctx.fillStyle = glossGrad;
-    ctx.fill();
+    // Inner glow near pupil
+    ctx.fillStyle = "#b0b0a8";
+    drawStipple(ctx, irisCx, irisCy, irisR * 0.55, 400, 1.0, rng, 0.6);
 
-    // --- Pupil ---
+    // Crosshatch strokes — the main texture
+    ctx.strokeStyle = "#c8c8c0";
+    drawCrosshatch(ctx, irisCx, irisCy, pupilR * 1.1, irisR * 0.95, 100, rng);
+
+    // Darker crosshatch overlay for depth
+    ctx.strokeStyle = "#404038";
+    drawCrosshatch(ctx, irisCx, irisCy, pupilR * 1.3, irisR * 0.7, 40, rng);
+
+    // Iris outer edge ring — dark stroke
+    drawRoughCircle(ctx, irisCx, irisCy, irisR, 1.5, 80, rng);
+    ctx.strokeStyle = "#2a2a28";
+    ctx.lineWidth = 1.8;
+    ctx.globalAlpha = 0.7;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // --- Pupil (solid black) ---
     const pDx = rawX * parallax.pupil + crossEye;
     const pDy = rawY * parallax.pupil;
     const dilatedR = pupilR * (anim.pupilDilation + breathe);
-    const pupilGrad = ctx.createRadialGradient(
-      cx + pDx, cy + pDy, 0,
-      cx + pDx, cy + pDy, dilatedR
-    );
-    pupilGrad.addColorStop(0, cfg.pupilColor);
-    pupilGrad.addColorStop(0.8, cfg.pupilColor);
-    pupilGrad.addColorStop(1, "rgba(5,5,5,0)");
+    const pupilCx = cx + pDx;
+    const pupilCy = cy + pDy;
+
+    ctx.fillStyle = "#000000";
     ctx.beginPath();
-    ctx.arc(cx + pDx, cy + pDy, dilatedR, 0, TAU);
-    ctx.fillStyle = pupilGrad;
+    ctx.arc(pupilCx, pupilCy, dilatedR, 0, TAU);
     ctx.fill();
 
-    // Specular highlights
-    const hlR = size * 0.035;
-    const hlX = cx + pDx - dilatedR * 0.3;
-    const hlY = cy + pDy - dilatedR * 0.3;
-    const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
-    hlGrad.addColorStop(0, cfg.highlightColor);
-    hlGrad.addColorStop(0.6, "rgba(255,255,255,0.5)");
-    hlGrad.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.beginPath();
-    ctx.arc(hlX, hlY, hlR, 0, TAU);
-    ctx.fillStyle = hlGrad;
-    ctx.fill();
+    // Pupil edge stipple — soft transition
+    ctx.fillStyle = "#1a1a18";
+    for (let i = 0; i < 200; i++) {
+      const a = rng() * TAU;
+      const r = dilatedR * (0.85 + rng() * 0.25);
+      ctx.globalAlpha = 0.2 + rng() * 0.3;
+      ctx.fillRect(pupilCx + Math.cos(a) * r, pupilCy + Math.sin(a) * r, 1.2, 1.2);
+    }
+    ctx.globalAlpha = 1;
 
-    // Secondary highlight
-    const hl2X = cx + pDx + dilatedR * 0.2;
-    const hl2Y = cy + pDy + dilatedR * 0.25;
-    const hl2R = hlR * 0.4;
-    ctx.beginPath();
-    ctx.arc(hl2X, hl2Y, hl2R, 0, TAU);
-    ctx.fillStyle = "rgba(255,255,255,0.4)";
-    ctx.fill();
+    // --- Highlight (rough white smudge) ---
+    const hlCx = pupilCx - dilatedR * 0.35;
+    const hlCy = pupilCy - dilatedR * 0.35;
+    ctx.fillStyle = "#ffffff";
+    for (let i = 0; i < 60; i++) {
+      const a = rng() * TAU;
+      const r = rng() * size * 0.025;
+      ctx.globalAlpha = 0.3 + rng() * 0.5;
+      const ds = 1 + rng() * 2;
+      ctx.fillRect(hlCx + Math.cos(a) * r, hlCy + Math.sin(a) * r, ds, ds);
+    }
 
-    // --- Full-eye gloss overlay ---
-    const glossOverlay = ctx.createRadialGradient(
-      cx - scleraR * 0.2, cy - scleraR * 0.25, scleraR * 0.05,
-      cx - scleraR * 0.2, cy - scleraR * 0.25, scleraR * 0.8
-    );
-    glossOverlay.addColorStop(0, "rgba(255,255,255,0.18)");
-    glossOverlay.addColorStop(0.5, "rgba(255,255,255,0.05)");
-    glossOverlay.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.beginPath();
-    ctx.arc(cx, cy, scleraR, 0, TAU);
-    ctx.fillStyle = glossOverlay;
-    ctx.fill();
+    // Secondary highlight — scattered dots
+    const hl2Cx = pupilCx + dilatedR * 0.25;
+    const hl2Cy = pupilCy + dilatedR * 0.2;
+    for (let i = 0; i < 15; i++) {
+      const a = rng() * TAU;
+      const r = rng() * size * 0.01;
+      ctx.globalAlpha = 0.15 + rng() * 0.25;
+      ctx.fillRect(hl2Cx + Math.cos(a) * r, hl2Cy + Math.sin(a) * r, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    // --- Scanline overlay ---
+    ctx.fillStyle = "#ffffff";
+    for (let y = 0; y < size; y += 3) {
+      ctx.globalAlpha = 0.015 + Math.sin(y * 0.5) * 0.008;
+      ctx.fillRect(0, y, size, 1);
+    }
+    ctx.globalAlpha = 1;
 
     // Restore from sclera clip
     ctx.restore();
 
-    // --- Eyelids (blink) — clipped to eye circle ---
+    // --- Eyelids (blink) ---
     if (anim.blinkProgress > 0.01) {
       const lidTravel = anim.blinkProgress * (scleraR + 4);
       ctx.save();
-      // Clip to sclera circle so lids only cover the eyeball
       ctx.beginPath();
       ctx.arc(cx, cy, scleraR, 0, TAU);
       ctx.clip();
       ctx.fillStyle = "#000000";
-      // Top lid
       ctx.fillRect(0, cy - scleraR - 4, size, lidTravel);
-      // Bottom lid
       ctx.fillRect(0, cy + scleraR + 4 - lidTravel, size, lidTravel);
       ctx.restore();
     }
