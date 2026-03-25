@@ -21,6 +21,12 @@ export const metadata: Metadata = {
     description: "Lifelike eyes that follow you. Built with Raspberry Pi.",
     type: "website",
     url: "https://raspieyes.dev",
+    siteName: "raspieyes",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "raspieyes",
+    description: "Lifelike eyes that follow you. Built with Raspberry Pi.",
   },
 };
 
