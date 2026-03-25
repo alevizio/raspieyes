@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
+import { Noto_Sans } from "next/font/google";
 import "./globals.css";
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://raspieyes.dev"),
@@ -24,7 +31,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <head>
+        {/* Datatype font — not on next/font/google, load via CSS */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Datatype:wght@100..900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={`${notoSans.variable} antialiased`}>{children}</body>
     </html>
   );
 }

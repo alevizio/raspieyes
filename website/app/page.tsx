@@ -156,7 +156,7 @@ const FaqSection = () => {
     <section className="py-24 px-6 max-w-3xl mx-auto">
       <FadeIn>
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-          Common <em className="italic text-blue-400 font-serif">Questions</em>
+          Common <em className="italic text-blue-400 font-[Datatype]">Questions</em>
         </h2>
         <p className="text-zinc-500 text-center text-lg mb-14 max-w-xl mx-auto">
           Everything else you might want to know.
@@ -253,7 +253,7 @@ export default function Home() {
       <section className="py-24 px-6 max-w-5xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            What it <em className="italic text-blue-400 font-serif">does</em>
+            What it <em className="italic text-blue-400 font-[Datatype]">does</em>
           </h2>
           <p className="text-zinc-500 text-center text-lg mb-16 max-w-xl mx-auto">
             Real-time rendered eyes that react to everything around them.
@@ -283,7 +283,7 @@ export default function Home() {
       <section id="build" className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Build Your <em className="italic text-blue-400 font-serif">Own</em>
+            Build Your <em className="italic text-blue-400 font-[Datatype]">Own</em>
           </h2>
           <p className="text-zinc-500 text-center text-lg mb-20 max-w-xl mx-auto">
             Everything you need to make a pair of tracking eyes.
@@ -354,7 +354,7 @@ export default function Home() {
       <section className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Built <em className="italic text-blue-400 font-serif">With</em>
+            Built <em className="italic text-blue-400 font-[Datatype]">With</em>
           </h2>
           <p className="text-zinc-500 text-center text-lg mb-12 max-w-xl mx-auto">
             Open source projects that made this possible.
@@ -395,7 +395,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.04),transparent_60%)]" />
         <FadeIn className="relative text-center">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Ready to <em className="italic text-blue-400 font-serif">build</em>?
+            Ready to <em className="italic text-blue-400 font-[Datatype]">build</em>?
           </h2>
           <p className="text-zinc-500 text-lg mb-10 max-w-md mx-auto">
             Clone the repo, flash a Pi, and bring your art to life.
