@@ -89,7 +89,7 @@ const FaqItem = ({ q, a, open, onClick }: { q: string; a: string; open: boolean;
     className="w-full text-left py-6 border-b border-[#303134]/30 group"
   >
     <div className="flex items-start justify-between gap-4">
-      <h3 className="font-medium text-[#e3e3e3] group-hover:text-white transition-colors">{q}</h3>
+      <h3 className="font-medium text-[#e3e3e3] group-hover:text-[#E3E3E3] transition-colors">{q}</h3>
       <span className={`flex-shrink-0 text-[#9aa0a6]/60 transition-transform duration-300 ${open ? "rotate-45" : ""}`}>+</span>
     </div>
     <div className={`overflow-hidden transition-all duration-300 ${open ? "max-h-40 opacity-100 mt-4" : "max-h-0 opacity-0"}`}>
@@ -144,7 +144,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen text-white">
+    <main className="min-h-screen text-[#E3E3E3]">
       {/* ── Hero ── */}
       <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.06),transparent_60%)]" />
@@ -156,7 +156,7 @@ export default function Home() {
               key={s.id}
               onClick={() => setSkin(s.id)}
               className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-200 ${
-                skin === s.id ? "bg-[#004C7C] text-white" : "text-[#9aa0a6] hover:text-[#e3e3e3]"
+                skin === s.id ? "bg-[#004C7C] text-[#E3E3E3]" : "text-[#9aa0a6] hover:text-[#e3e3e3]"
               }`}
             >
               {s.label}
@@ -164,32 +164,32 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="relative flex items-center gap-6 md:gap-16 mb-12">
+        <div className="relative flex items-center gap-4 md:gap-16 mb-12 scale-[0.65] sm:scale-75 md:scale-100">
           <Eye ref={eyeLeftRef} isLeft={true} skin={skin} />
           <Eye ref={eyeRightRef} isLeft={false} skin={skin} />
         </div>
 
         <div className="relative text-center px-6">
-          <p className="text-xs text-[#9aa0a6]/60 animate-pulse mb-6">
+          <p className="text-xs text-[#9aa0a6]/60 animate-pulse mb-6 hidden md:block">
             Move your mouse — the eyes are watching
           </p>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
+          <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
             raspi<em className="not-italic text-[#004C7C]">eyes</em>
           </h1>
-          <p className="text-lg md:text-2xl text-[#9aa0a6] max-w-2xl mx-auto leading-relaxed whitespace-nowrap">
+          <p className="text-base md:text-2xl text-[#9aa0a6] max-w-2xl mx-auto leading-relaxed">
             Lifelike eyes that follow you. <span className="text-[#bdc1c6]">Built with Raspberry Pi.</span>
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://github.com/alevizio/raspieyes"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-[#004C7C] text-white rounded-full font-medium hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_24px_rgba(0,76,124,0.3)]"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-[#004C7C] text-[#E3E3E3] rounded-full font-medium hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_24px_rgba(0,76,124,0.3)]"
             >
               <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={20} height={20} className="invert" />
               View on GitHub
             </a>
             <a
               href="#build"
-              className="inline-flex items-center gap-2 px-8 py-3 border border-[#444649]/60 rounded-full font-medium text-[#e3e3e3] hover:border-[#444649] hover:text-white transition-all duration-300"
+              className="inline-flex items-center gap-2 px-8 py-3 border border-[#444649]/60 rounded-full font-medium text-[#e3e3e3] hover:border-[#444649] hover:text-[#E3E3E3] transition-all duration-300"
             >
               <img src={`${ICON_BASE}/computers-devices-electronics/computers-devices-electronics-chipset.svg`} alt="" width={20} height={20} className="invert opacity-70" />
               Build Your Own
@@ -346,7 +346,7 @@ export default function Home() {
           </p>
           <a
             href="https://github.com/alevizio/raspieyes"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-[#004C7C] text-white rounded-full font-medium text-lg hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_32px_rgba(0,76,124,0.3)]"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-[#004C7C] text-[#E3E3E3] rounded-full font-medium text-lg hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_32px_rgba(0,76,124,0.3)]"
           >
             <img src={`${ICON_BASE}/social-rewards/social-rewards-rating-star-2.svg`} alt="" width={22} height={22} className="invert" />
             Star on GitHub

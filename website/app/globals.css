@@ -44,7 +44,7 @@ body::before {
 
 ::selection {
   background: var(--accent);
-  color: white;
+  color: #E3E3E3;
 }
 
 /* Scrollbar styling */
