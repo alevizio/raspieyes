@@ -224,7 +224,7 @@ export default function Home() {
               href="https://github.com/alevizio/raspieyes"
               className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#004C7C] text-white rounded-full font-medium hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_24px_rgba(0,76,124,0.3)]"
             >
-              <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={20} height={20} />
+              <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={20} height={20} className="invert" />
               View on GitHub
             </a>
             <a
