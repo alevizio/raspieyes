@@ -280,7 +280,7 @@ export default function Home() {
             {STEPS.map((s, i) => (
               <FadeIn key={s.step} delay={i * 100}>
                 <div className="relative">
-                  <span className="absolute -left-[3.25rem] w-6 h-6 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
+                  <span className="absolute -left-[calc(3rem+1px)] top-0 w-6 h-6 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
                     <span className="w-2 h-2 rounded-full bg-[#004C7C]" />
                   </span>
                   <h4 className="font-medium mb-2 text-[#e3e3e3]">
