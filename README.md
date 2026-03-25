@@ -22,17 +22,17 @@ Two round HDMI displays show procedurally rendered 3D eyes that:
 
 ## How it works
 
-```
-Camera (15 Hz) → Face/Motion Detection → Tracking State (position + velocity)
-                                              ↓
-Microphone (32 kHz) → Beat/Startle/Direction → Animation Engine
-                                              ↓
-                                    Render Loop (60 Hz) → Two Round Displays
-```
-
 The eye is rendered as three parallax layers (sclera, iris, pupil) that move independently — the pupil tracks furthest, the sclera barely moves. This creates a convincing depth illusion on flat screens.
 
 Detection runs on a background thread at 15 fps. Rendering runs at 60 fps with smooth interpolation between detection frames.
+
+### Software Pipeline
+
+![Software Pipeline](docs/software-pipeline.png)
+
+### Hardware Connections
+
+![Hardware Diagram](docs/hardware-diagram.png)
 
 ## Hardware
 
