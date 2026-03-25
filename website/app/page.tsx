@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Eye } from "@/components/eye";
 import { FadeIn } from "@/components/fade-in";
 
@@ -62,6 +62,41 @@ const BADGES = [
   { label: "Raspberry Pi 5", icon: "🍓" },
 ];
 
+const FAQ = [
+  {
+    q: "How long does the battery last?",
+    a: "With a 20,000mAh power bank, you get about 5.5–6 hours. For a full Burning Man night (8–10+ hours), we recommend two power banks and swapping halfway through.",
+  },
+  {
+    q: "Does it work in the dark?",
+    a: "Yes. The Pi Camera Module 3 NoIR has no infrared filter, so it sees in near-darkness — especially with IR LED illumination. The motion detector also works at any light level.",
+  },
+  {
+    q: "Can I use custom eye designs?",
+    a: "Yes. Drop sclera.png, iris.png, and pupil.png into the assets/ folder and the renderer uses them as parallax layers instead of the procedural eye. You can also set RENDER_MODE=video in config.txt to loop mp4 videos instead.",
+  },
+  {
+    q: "What displays work?",
+    a: "Any HDMI display works, but the project is designed for round 1080×1080 screens (Waveshare WS070Round). The round shape makes the eyeball illusion convincing.",
+  },
+  {
+    q: "Do I need the AI HAT+?",
+    a: "No — it's optional. The Pi 5 CPU handles face detection fine at 15fps with OpenCV DNN. The AI HAT+ (13 TOPS NPU) lets you run detection at 30–60fps for smoother tracking.",
+  },
+  {
+    q: "Can it detect multiple people?",
+    a: "Yes. The centroid tracker follows the largest / closest person, but detects all movement in frame. When someone new approaches, the eye smoothly transitions to track them.",
+  },
+  {
+    q: "Is it TSA / flight approved?",
+    a: "Yes. Power banks under 100Wh (≈27,000mAh) are allowed in carry-on luggage. The 20,000mAh Baseus at 74Wh is well under the limit.",
+  },
+  {
+    q: "Can I test without a Raspberry Pi?",
+    a: "Yes! Run python3 eye_renderer.py --mouse --windowed on any Mac or Linux machine to test with mouse tracking, or --test-webcam for camera tracking.",
+  },
+];
+
 const STEPS = [
   {
     step: "1",
@@ -90,6 +125,60 @@ const STEPS = [
     desc: "Eyes start on boot. Walk in front of the camera.",
   },
 ];
+
+const FaqItem = ({ q, a, open, onClick }: { q: string; a: string; open: boolean; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className="w-full text-left py-5 border-b border-zinc-800/40 group"
+  >
+    <div className="flex items-start justify-between gap-4">
+      <h3 className="font-medium text-zinc-200 group-hover:text-white transition-colors">
+        {q}
+      </h3>
+      <span
+        className={`flex-shrink-0 text-zinc-600 transition-transform duration-300 mt-0.5 ${open ? "rotate-45" : ""}`}
+      >
+        +
+      </span>
+    </div>
+    <div
+      className={`overflow-hidden transition-all duration-300 ${open ? "max-h-40 opacity-100 mt-3" : "max-h-0 opacity-0"}`}
+    >
+      <p className="text-zinc-500 text-sm leading-relaxed pr-8">{a}</p>
+    </div>
+  </button>
+);
+
+const FaqSection = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section className="py-24 px-6 max-w-3xl mx-auto">
+      <FadeIn>
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
+          Common <em className="italic text-blue-400 font-serif">Questions</em>
+        </h2>
+        <p className="text-zinc-500 text-center text-lg mb-14 max-w-xl mx-auto">
+          Everything else you might want to know.
+        </p>
+      </FadeIn>
+
+      <FadeIn>
+        <div>
+          {FAQ.map((item, i) => (
+            <FaqItem
+              key={i}
+              q={item.q}
+              a={item.a}
+              open={openIndex === i}
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+            />
+          ))}
+        </div>
+      </FadeIn>
+    </section>
+  );
+};
 
 export default function Home() {
   const eyeLeftRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
@@ -297,6 +386,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ── FAQ ── */}
+      <FaqSection />
 
       {/* ── Footer CTA ── */}
       <section className="py-32 px-6 relative">
