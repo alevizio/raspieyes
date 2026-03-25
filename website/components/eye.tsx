@@ -126,7 +126,7 @@ const drawCrosshatch = (
   ctx.globalAlpha = 1;
 };
 
-export type EyeSkin = "handdrawn" | "realistic";
+export type EyeSkin = "handdrawn" | "realistic" | "halftone";
 
 export const Eye = forwardRef<EyeHandle, {
   className?: string;
@@ -255,6 +255,8 @@ export const Eye = forwardRef<EyeHandle, {
 
     if (currentSkin === "realistic") {
       drawRealistic(ctx, cx, cy, scleraR, irisR, pupilR, rawX, rawY, crossEye, parallax, size, anim, cfg, breathe);
+    } else if (currentSkin === "halftone") {
+      drawHalftone(ctx, cx, cy, scleraR, irisR, pupilR, rawX, rawY, crossEye, parallax, size, anim, breathe);
     } else {
       drawHanddrawn(ctx, cx, cy, scleraR, irisR, pupilR, rawX, rawY, crossEye, parallax, size, anim, breathe);
     }
@@ -437,6 +439,126 @@ export const Eye = forwardRef<EyeHandle, {
       ctx.arc(cx, cy, scleraR, 0, TAU);
       ctx.clip();
       ctx.fillStyle = "#000000";
+      ctx.fillRect(0, cy - scleraR - 4, size, lidTravel);
+      ctx.fillRect(0, cy + scleraR + 4 - lidTravel, size, lidTravel);
+      ctx.restore();
+    }
+  };
+
+  const drawHalftone = (
+    ctx: CanvasRenderingContext2D,
+    cx: number, cy: number, scleraR: number, irisR: number, pupilR: number,
+    rawX: number, rawY: number, crossEye: number,
+    parallax: { sclera: number; iris: number; pupil: number },
+    size: number, anim: typeof animRef.current, breathe: number
+  ) => {
+    const spacing = 5.5;
+    const maxDotR = spacing * 0.44;
+
+    const sDx = rawX * parallax.sclera;
+    const sDy = rawY * parallax.sclera;
+    const scleraCx = cx + sDx;
+    const scleraCy = cy + sDy;
+
+    const iDx = rawX * parallax.iris + crossEye;
+    const iDy = rawY * parallax.iris;
+    const irisCx = cx + iDx;
+    const irisCy = cy + iDy;
+
+    const pDx = rawX * parallax.pupil + crossEye;
+    const pDy = rawY * parallax.pupil;
+    const pupilCx = cx + pDx;
+    const pupilCy = cy + pDy;
+    const dilatedR = pupilR * (anim.pupilDilation + breathe);
+
+    // Highlight position
+    const hlCx = pupilCx - dilatedR * 0.35;
+    const hlCy = pupilCy - dilatedR * 0.4;
+    const hlR = size * 0.06;
+
+    for (let gy = 0; gy < size; gy += spacing) {
+      for (let gx = 0; gx < size; gx += spacing) {
+        // Distance to each zone center
+        const dSclera = Math.hypot(gx - scleraCx, gy - scleraCy);
+        const dIris = Math.hypot(gx - irisCx, gy - irisCy);
+        const dPupil = Math.hypot(gx - pupilCx, gy - pupilCy);
+        const dHighlight = Math.hypot(gx - hlCx, gy - hlCy);
+
+        // Outside eye — skip
+        if (dSclera > scleraR + 1) continue;
+
+        let dotR = 0;
+        let color = "";
+
+        if (dPupil < dilatedR * 0.85) {
+          // Pupil zone — tiny dot or nothing
+          if (dHighlight < hlR) {
+            // Highlight in pupil
+            const t = 1 - dHighlight / hlR;
+            dotR = maxDotR * (0.3 + t * 0.7);
+            color = "#ffffff";
+          } else {
+            dotR = maxDotR * 0.08;
+            color = "#1a1a1a";
+          }
+        } else if (dIris < irisR) {
+          // Iris zone — red/coral dots
+          const t = dIris / irisR;
+          // Brighter in middle ring, darker at edges
+          const ringT = 1 - Math.abs(t - 0.5) * 2;
+          dotR = maxDotR * (0.25 + ringT * 0.55);
+
+          // Highlight bleed into iris
+          if (dHighlight < hlR * 1.5) {
+            const hlBlend = 1 - dHighlight / (hlR * 1.5);
+            dotR = Math.max(dotR, maxDotR * hlBlend * 0.6);
+            const r = Math.round(196 + hlBlend * 59);
+            const g = Math.round(64 + hlBlend * 140);
+            const b = Math.round(64 + hlBlend * 140);
+            color = `rgb(${r},${g},${b})`;
+          } else {
+            // Vary red slightly for depth
+            const rVal = 170 + Math.round(ringT * 30);
+            color = `rgb(${rVal},${55 + Math.round(ringT * 20)},${50 + Math.round(ringT * 20)})`;
+          }
+        } else if (dSclera < scleraR) {
+          // Sclera zone — white dots
+          const edgeT = dSclera / scleraR;
+          // Bigger dots near center, fade at edge
+          dotR = maxDotR * (0.85 - edgeT * 0.7);
+
+          // Upper-left hemisphere is brighter (lighting)
+          const angleToCenter = Math.atan2(gy - scleraCy, gx - scleraCx);
+          const lightBoost = Math.max(0, -Math.cos(angleToCenter - 0.8) * 0.15);
+          dotR = Math.min(maxDotR, dotR + maxDotR * lightBoost);
+
+          const brightness = Math.round(200 + (1 - edgeT) * 55);
+          color = `rgb(${brightness},${brightness - 2},${brightness - 8})`;
+        } else {
+          // Edge fade
+          const fade = 1 - (dSclera - scleraR * 0.92) / (scleraR * 0.08);
+          if (fade <= 0) continue;
+          dotR = maxDotR * 0.15 * fade;
+          color = "#888";
+        }
+
+        if (dotR < 0.2) continue;
+
+        ctx.beginPath();
+        ctx.arc(gx, gy, dotR, 0, TAU);
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+    }
+
+    // Eyelids
+    if (anim.blinkProgress > 0.01) {
+      const lidTravel = anim.blinkProgress * (scleraR + 4);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, scleraR + spacing, 0, TAU);
+      ctx.clip();
+      ctx.fillStyle = "#131314";
       ctx.fillRect(0, cy - scleraR - 4, size, lidTravel);
       ctx.fillRect(0, cy + scleraR + 4 - lidTravel, size, lidTravel);
       ctx.restore();

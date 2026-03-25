@@ -184,6 +184,7 @@ const FaqSection = () => {
 
 const SKINS: { id: EyeSkin; label: string }[] = [
   { id: "handdrawn", label: "Sketch" },
+  { id: "halftone", label: "Halftone" },
   { id: "realistic", label: "Realistic" },
 ];
 
