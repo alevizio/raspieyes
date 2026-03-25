@@ -61,6 +61,7 @@ export const Eye = forwardRef<EyeHandle, {
     currentY: 0,
     pupilDilation: 1.0,
     blinkProgress: 0,
+    blinkPhase: 0 as number, // 0=idle, 1=closing, 2=opening
     blinkTimer: 0,
     nextBlink: 3 + Math.random() * 4,
     breatheTime: Math.random() * 100,
@@ -138,19 +139,28 @@ export const Eye = forwardRef<EyeHandle, {
     anim.breatheTime += dt;
     const breathe = Math.sin(anim.breatheTime * 0.2 * TAU) * 0.03;
 
-    // Blink — only count timer when not blinking
-    if (anim.blinkProgress <= 0) {
+    // Blink — explicit state machine: 0=idle, 1=closing, 2=opening
+    if (anim.blinkPhase === 0) {
+      // Idle — waiting for next blink
       anim.blinkTimer += dt;
+      anim.blinkProgress = 0;
       if (anim.blinkTimer > anim.nextBlink) {
-        anim.blinkProgress = 0.01;
+        anim.blinkPhase = 1; // start closing
         anim.blinkTimer = 0;
-        anim.nextBlink = 3 + Math.random() * 6; // 3-9 seconds between blinks
+        anim.nextBlink = 3 + Math.random() * 6;
       }
-    } else if (anim.blinkProgress < 1) {
-      anim.blinkProgress += dt * 8; // close
+    } else if (anim.blinkPhase === 1) {
+      // Closing
+      anim.blinkProgress = Math.min(1, anim.blinkProgress + dt * 10);
+      if (anim.blinkProgress >= 1) {
+        anim.blinkPhase = 2; // start opening
+      }
     } else {
-      anim.blinkProgress -= dt * 6; // open
-      if (anim.blinkProgress <= 0) anim.blinkProgress = 0;
+      // Opening
+      anim.blinkProgress = Math.max(0, anim.blinkProgress - dt * 7);
+      if (anim.blinkProgress <= 0) {
+        anim.blinkPhase = 0; // back to idle
+      }
     }
 
     // Offsets
