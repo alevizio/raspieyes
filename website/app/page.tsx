@@ -219,14 +219,16 @@ export default function Home() {
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://github.com/alevizio/raspieyes"
-              className="px-8 py-3.5 bg-[#8ab4f8] text-[#131314] rounded-full font-medium hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_24px_rgba(138,180,248,0.3)]"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#8ab4f8] text-[#131314] rounded-full font-medium hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_24px_rgba(138,180,248,0.3)]"
             >
+              <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={20} height={20} />
               View on GitHub
             </a>
             <a
               href="#build"
-              className="px-8 py-3.5 border border-[#444649]/60 rounded-full font-medium text-[#e3e3e3] hover:border-[#444649] hover:text-white transition-all duration-300"
+              className="px-8 py-3.5 border border-[#444649]/60 rounded-full font-medium text-[#e3e3e3] hover:border-[#444649] hover:text-white transition-all duration-300 inline-flex items-center gap-2"
             >
+              <img src={`${ICON_BASE}/computers-devices-electronics/computers-devices-electronics-chipset.svg`} alt="" width={20} height={20} className="invert opacity-70" />
               Build Your Own
             </a>
           </div>
@@ -405,7 +407,8 @@ export default function Home() {
             href="https://github.com/alevizio/raspieyes"
             className="inline-flex items-center gap-2 px-10 py-4 bg-[#8ab4f8] text-[#131314] rounded-full font-medium text-lg hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_32px_rgba(138,180,248,0.3)]"
           >
-            ⭐ Star on GitHub
+            <img src={`${ICON_BASE}/social-rewards/social-rewards-rating-star-2.svg`} alt="" width={22} height={22} className="invert" />
+            Star on GitHub
           </a>
         </FadeIn>
       </section>
