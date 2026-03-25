@@ -191,7 +191,7 @@ const SKINS: { id: EyeSkin; label: string }[] = [
 export default function Home() {
   const eyeLeftRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
   const eyeRightRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
-  const [skin, setSkin] = useState<EyeSkin>("handdrawn");
+  const [skin, setSkin] = useState<EyeSkin>("realistic");
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -211,13 +211,8 @@ export default function Home() {
         {/* Radial glow behind eyes */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.06),transparent_60%)]" />
 
-        <div className="relative flex items-center gap-6 md:gap-14 mb-12">
-          <Eye ref={eyeLeftRef} isLeft={true} skin={skin} />
-          <Eye ref={eyeRightRef} isLeft={false} skin={skin} />
-        </div>
-
         {/* Skin toggle */}
-        <div className="relative flex items-center justify-center gap-1 mb-6">
+        <div className="relative flex items-center justify-center gap-1 mb-8">
           {SKINS.map((s) => (
             <button
               key={s.id}
@@ -231,6 +226,11 @@ export default function Home() {
               {s.label}
             </button>
           ))}
+        </div>
+
+        <div className="relative flex items-center gap-6 md:gap-14 mb-12">
+          <Eye ref={eyeLeftRef} isLeft={true} skin={skin} />
+          <Eye ref={eyeRightRef} isLeft={false} skin={skin} />
         </div>
 
         <div className="relative text-center px-6">
