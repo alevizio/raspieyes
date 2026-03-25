@@ -244,7 +244,7 @@ export default function Home() {
         {BADGES.map((b) => (
           <span
             key={b.label}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1E1F20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-transparent text-sm text-[#bdc1c6] backdrop-blur-sm"
           >
             <img src={b.icon} alt="" width={20} height={20} className="invert opacity-60" />
             {b.label}
@@ -266,7 +266,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
-              <div className="group p-7 rounded-2xl bg-[#1E1F20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
+              <div className="group p-7 rounded-2xl bg-transparent border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
                 <div className="mb-5">
                   <img src={f.icon} alt="" width={36} height={36} className="invert opacity-70" />
                 </div>
@@ -296,7 +296,7 @@ export default function Home() {
         {/* Hardware BOM */}
         <FadeIn className="mb-20">
           <h3 className="text-xl font-semibold mb-6 text-[#e3e3e3]">Hardware</h3>
-          <div className="rounded-2xl bg-[#1E1F20]/60 border border-[#303134]/50 overflow-hidden">
+          <div className="rounded-2xl bg-transparent border border-[#303134]/50 overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-[#303134]/60">
@@ -309,7 +309,7 @@ export default function Home() {
                 {HARDWARE_BOM.map((h, i) => (
                   <tr
                     key={h.item}
-                    className={`border-b border-[#303134]/30 ${i % 2 === 0 ? "bg-[#1E1F20]/40" : ""}`}
+                    className={`border-b border-[#303134]/30 ${i % 2 === 0 ? "bg-transparent" : ""}`}
                   >
                     <td className="py-3 px-5 text-[#e3e3e3]">{h.item}</td>
                     <td className="py-3 px-5 text-[#bdc1c6] font-mono text-xs">{h.price}</td>
@@ -332,7 +332,7 @@ export default function Home() {
                   <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#8ab4f8]/20 border-2 border-[#8ab4f8]/50 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8ab4f8]" />
                   </span>
-                  <div className="p-5 rounded-xl bg-[#1E1F20]/60 border border-[#303134]/40">
+                  <div className="p-5 rounded-xl bg-transparent border border-[#303134]/40">
                     <h4 className="font-medium mb-1.5 text-[#e3e3e3]">
                       <span className="text-[#8ab4f8]/70 mr-2 text-sm">0{s.step}</span>
                       {s.title}
@@ -371,7 +371,7 @@ export default function Home() {
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-start gap-3 p-5 rounded-xl bg-[#1E1F20]/60 border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
+                className="group flex items-start gap-3 p-5 rounded-xl bg-transparent border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
               >
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-mono text-[#8ab4f8] group-hover:text-[#aecbfa] transition-colors">
