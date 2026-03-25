@@ -19,7 +19,7 @@ html {
 }
 
 body {
-  background: radial-gradient(ellipse at 50% 0%, #1a1b1d 0%, #131314 70%);
+  background: #131314;
   color: var(--text);
   font-family: var(--font-body), "Noto Sans", system-ui, sans-serif;
   min-height: 100vh;
