@@ -414,27 +414,35 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-16 px-6 border-t border-[#303134]/40 text-center">
-        <p className="text-[#9aa0a6] text-sm">
-          Built for{" "}
-          <span className="text-orange-400/80">Burning Man 2026</span> by{" "}
-          <a
-            href="https://github.com/alevizio"
-            className="text-[#e3e3e3] hover:text-white transition-colors"
-          >
-            Alejandro
-          </a>
-        </p>
-        <p className="mt-3 text-[#9aa0a6]/60 text-xs">
-          <a
-            href="https://github.com/alevizio/raspieyes"
-            className="hover:text-[#bdc1c6] transition-colors"
-          >
-            GitHub
-          </a>
-          {" · "}
-          MIT License
-        </p>
+      <footer className="py-20 px-6 border-t border-[#303134]/30">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="text-center md:text-left">
+            <p className="text-[#e3e3e3] font-bold text-lg tracking-tight">
+              raspi<span className="text-[#004C7C]">eyes</span>
+            </p>
+            <p className="text-[#9aa0a6] text-sm mt-1">
+              Built for <span className="text-[#004C7C]">Burning Man 2026</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-[#9aa0a6]">
+            <a
+              href="https://github.com/alevizio/raspieyes"
+              className="hover:text-[#e3e3e3] transition-colors inline-flex items-center gap-1.5"
+            >
+              <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={16} height={16} className="invert opacity-60" />
+              GitHub
+            </a>
+            <span className="text-[#303134]">·</span>
+            <a
+              href="https://github.com/alevizio"
+              className="hover:text-[#e3e3e3] transition-colors"
+            >
+              @alevizio
+            </a>
+            <span className="text-[#303134]">·</span>
+            <span className="text-[#9aa0a6]/60">MIT License</span>
+          </div>
+        </div>
       </footer>
     </main>
   );
