@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 
 const TAU = Math.PI * 2;
+
+export interface EyeHandle {
+  setTarget: (x: number, y: number) => void;
+}
 
 interface EyeConfig {
   size: number;
@@ -28,30 +32,29 @@ const DEFAULT_CONFIG: EyeConfig = {
   maxOffset: 0.35,
 };
 
-export const Eye = ({
-  className,
-  config = DEFAULT_CONFIG,
-  targetX = 0,
-  targetY = 0,
-  isLeft = true,
-}: {
+export const Eye = forwardRef<EyeHandle, {
   className?: string;
   config?: EyeConfig;
-  targetX?: number;
-  targetY?: number;
   isLeft?: boolean;
-}) => {
+}>(({
+  className,
+  config = DEFAULT_CONFIG,
+  isLeft = true,
+}, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Store props in refs so the rAF loop never restarts
-  const targetRef = useRef({ x: targetX, y: targetY });
-  targetRef.current = { x: targetX, y: targetY };
-
+  const targetRef = useRef({ x: 0, y: 0 });
   const configRef = useRef(config);
   configRef.current = config;
-
   const isLeftRef = useRef(isLeft);
   isLeftRef.current = isLeft;
+
+  // Expose setTarget so parent can update without re-rendering
+  useImperativeHandle(ref, () => ({
+    setTarget: (x: number, y: number) => {
+      targetRef.current = { x, y };
+    },
+  }));
 
   const animRef = useRef({
     currentX: 0,
@@ -339,4 +342,6 @@ export const Eye = ({
       style={{ width: config.size / 2, height: config.size / 2 }}
     />
   );
-};
+});
+
+Eye.displayName = "Eye";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Eye } from "@/components/eye";
 
 const HARDWARE_BOM = [
@@ -46,16 +46,47 @@ const FEATURES = [
   },
 ];
 
+const REFERENCES = [
+  {
+    name: "pageauc/motion-track",
+    description: "Motion tracking with OpenCV on Raspberry Pi",
+    url: "https://github.com/pageauc/motion-track",
+  },
+  {
+    name: "pageauc/speed-camera",
+    description: "Speed camera using motion tracking and OpenCV",
+    url: "https://github.com/pageauc/speed-camera",
+  },
+  {
+    name: "Uberi/MotionTracking",
+    description: "Real-time motion tracking algorithms",
+    url: "https://github.com/Uberi/MotionTracking",
+  },
+  {
+    name: "opencv/opencv",
+    description: "Computer vision library — DNN face detection, MOG2 background subtraction",
+    url: "https://github.com/opencv/opencv",
+  },
+  {
+    name: "google-ai-edge/mediapipe",
+    description: "Face detection and landmark tracking",
+    url: "https://github.com/google-ai-edge/mediapipe",
+  },
+];
+
 export default function Home() {
-  const [mouseX, setMouseX] = useState(0);
-  const [mouseY, setMouseY] = useState(0);
+  // Use refs instead of state — no React re-renders on mouse move
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const eyeLeftRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
+  const eyeRightRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
       const nx = (e.clientX / window.innerWidth - 0.5) * 2;
       const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-      setMouseX(nx);
-      setMouseY(ny);
+      // Update refs directly — no re-render
+      eyeLeftRef.current?.setTarget(nx, ny);
+      eyeRightRef.current?.setTarget(nx, ny);
     };
     window.addEventListener("mousemove", handleMouse);
     return () => window.removeEventListener("mousemove", handleMouse);
@@ -66,8 +97,8 @@ export default function Home() {
       {/* Hero — Full-screen eyes */}
       <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
         <div className="flex items-center gap-8 md:gap-16">
-          <Eye targetX={mouseX} targetY={mouseY} isLeft={true} />
-          <Eye targetX={mouseX} targetY={mouseY} isLeft={false} />
+          <Eye ref={eyeLeftRef} isLeft={true} />
+          <Eye ref={eyeRightRef} isLeft={false} />
         </div>
         <div className="absolute bottom-12 text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-3">
@@ -198,6 +229,30 @@ export default function Home() {
                 )}
               </div>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* References */}
+      <section className="py-24 px-6 max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold text-center mb-4">
+          Built With
+        </h2>
+        <p className="text-zinc-400 text-center mb-12 max-w-2xl mx-auto">
+          Open source projects that made this possible.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {REFERENCES.map((r) => (
+            <a
+              key={r.name}
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/50 hover:border-zinc-600 transition-colors"
+            >
+              <span className="text-sm font-mono text-blue-400">{r.name}</span>
+              <span className="text-zinc-500 text-xs mt-1">{r.description}</span>
+            </a>
           ))}
         </div>
       </section>
