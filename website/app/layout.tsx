@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "raspieyes — Interactive Eye Tracking Art",
   description:
     "Open-source Raspberry Pi project that creates lifelike eyes that follow you. Built for Burning Man.",
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👁️</text></svg>",
+  },
   openGraph: {
     title: "raspieyes",
     description: "Lifelike eyes that follow you. Built with Raspberry Pi.",
