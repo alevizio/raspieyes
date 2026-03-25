@@ -212,7 +212,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.06),transparent_60%)]" />
 
         {/* Skin toggle */}
-        <div className="relative flex items-center justify-center gap-1 mb-8">
+        <div className="relative flex items-center justify-center gap-1 mb-14">
           {SKINS.map((s) => (
             <button
               key={s.id}
