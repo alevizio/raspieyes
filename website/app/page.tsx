@@ -348,10 +348,10 @@ export default function Home() {
         {/* Quick Start — Timeline */}
         <FadeIn>
           <h3 className="text-xl font-semibold mb-8 text-[#e3e3e3]">Quick Start</h3>
-          <div className="relative pl-8 border-l border-[#303134]/60">
+          <div className="relative pl-8 border-l border-[#303134]/60 space-y-16">
             {STEPS.map((s, i) => (
               <FadeIn key={s.step} delay={i * 100}>
-                <div className="relative mb-32 last:mb-0">
+                <div className="relative">
                   {/* Circle on timeline */}
                   <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#004C7C]" />
