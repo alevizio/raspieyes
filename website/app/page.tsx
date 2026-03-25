@@ -210,6 +210,9 @@ export default function Home() {
         </div>
 
         <div className="relative text-center px-6">
+          <p className="text-xs text-[#9aa0a6]/60 animate-pulse mb-4">
+            Move your mouse — the eyes are watching
+          </p>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
             raspi<em className="not-italic text-[#8ab4f8]">eyes</em>
           </h1>
@@ -234,9 +237,6 @@ export default function Home() {
           </div>
         </div>
 
-        <p className="absolute bottom-6 text-xs text-[#9aa0a6]/60 animate-pulse">
-          Move your mouse — the eyes are watching
-        </p>
       </section>
 
       {/* ── Trust Badges ── */}
