@@ -138,17 +138,18 @@ export const Eye = forwardRef<EyeHandle, {
     anim.breatheTime += dt;
     const breathe = Math.sin(anim.breatheTime * 0.2 * TAU) * 0.03;
 
-    // Blink
-    anim.blinkTimer += dt;
-    if (anim.blinkProgress <= 0 && anim.blinkTimer > anim.nextBlink) {
-      anim.blinkProgress = 0.01;
-      anim.blinkTimer = 0;
-      anim.nextBlink = 2.5 + Math.random() * 5;
-    }
-    if (anim.blinkProgress > 0 && anim.blinkProgress < 1) {
-      anim.blinkProgress += dt * 8;
-    } else if (anim.blinkProgress >= 1) {
-      anim.blinkProgress -= dt * 6;
+    // Blink — only count timer when not blinking
+    if (anim.blinkProgress <= 0) {
+      anim.blinkTimer += dt;
+      if (anim.blinkTimer > anim.nextBlink) {
+        anim.blinkProgress = 0.01;
+        anim.blinkTimer = 0;
+        anim.nextBlink = 3 + Math.random() * 6; // 3-9 seconds between blinks
+      }
+    } else if (anim.blinkProgress < 1) {
+      anim.blinkProgress += dt * 8; // close
+    } else {
+      anim.blinkProgress -= dt * 6; // open
       if (anim.blinkProgress <= 0) anim.blinkProgress = 0;
     }
 
@@ -179,6 +180,12 @@ export const Eye = forwardRef<EyeHandle, {
     ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
     ctx.fillStyle = scleraGrad;
     ctx.fill();
+
+    // Clip everything inside the eye to sclera bounds
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
+    ctx.clip();
 
     // Sclera shadow ring
     const shadowGrad = ctx.createRadialGradient(
@@ -319,6 +326,9 @@ export const Eye = forwardRef<EyeHandle, {
     ctx.arc(cx, cy, scleraR, 0, TAU);
     ctx.fillStyle = glossOverlay;
     ctx.fill();
+
+    // Restore from sclera clip
+    ctx.restore();
 
     // --- Eyelids (blink) — clipped to eye circle ---
     if (anim.blinkProgress > 0.01) {
