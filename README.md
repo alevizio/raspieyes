@@ -4,7 +4,7 @@ Lifelike eyes that follow you. Built with Raspberry Pi.
 
 A real-time rendered parallax eye system that tracks faces, reacts to sound, and responds to depth — designed for Burning Man, Halloween, art installations, or anywhere you want something watching.
 
-**[Live Demo](https://website-alevizio.vercel.app)** · **[Build Guide](#build-your-own)** · **[Hardware List](#hardware)**
+**[Live Demo](https://raspieyes.dev)** · **[Build Guide](#build-your-own)** · **[Hardware List](#hardware)**
 
 ---
 

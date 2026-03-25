@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://raspieyes.dev/sitemap.xml
