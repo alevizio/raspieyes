@@ -2,31 +2,32 @@
 
 import { useEffect, useRef } from "react";
 import { Eye } from "@/components/eye";
+import { FadeIn } from "@/components/fade-in";
 
 const HARDWARE_BOM = [
-  { item: "Raspberry Pi 5 (8GB)", price: "$80", link: "https://www.raspberrypi.com/products/raspberry-pi-5/" },
-  { item: "Pi Camera Module 3 NoIR", price: "$35", link: "https://www.raspberrypi.com/products/camera-module-3/" },
-  { item: "2x Round HDMI Displays (1080x1080)", price: "~$50 each", link: "#" },
-  { item: "Pi AI HAT+ (13 TOPS)", price: "~$77", link: "https://www.raspberrypi.com/products/ai-hat-plus/" },
-  { item: "Pi AI Camera (IMX500)", price: "$70", link: "https://www.raspberrypi.com/products/ai-camera/" },
-  { item: "USB-C Power Bank (20,000mAh+)", price: "~$30-40", link: "#" },
-  { item: "USB Webcam with Stereo Mic", price: "~$30", link: "#" },
+  { item: "Raspberry Pi 5 (8GB)", price: "$80", note: "Required" },
+  { item: "2× Round HDMI Displays (1080×1080)", price: "~$100", note: "Required" },
+  { item: "Pi Camera Module 3 NoIR", price: "$35", note: "Required" },
+  { item: "USB-C Power Bank (20,000mAh+)", price: "~$30", note: "Portable power" },
+  { item: "Pi AI HAT+ (13 TOPS)", price: "~$77", note: "Optional — NPU acceleration" },
+  { item: "Pi AI Camera (IMX500)", price: "$70", note: "Optional — on-sensor inference" },
+  { item: "USB Webcam with Stereo Mic", price: "~$30", note: "Optional — audio reactivity" },
 ];
 
 const FEATURES = [
   {
     title: "Face Tracking",
-    description: "OpenCV DNN + MediaPipe detect faces and follow them with parallax layers.",
+    description: "OpenCV DNN + MediaPipe detect faces and follow them with multi-layer parallax.",
     icon: "👤",
   },
   {
     title: "Depth Reactive",
-    description: "Pupil dilates as you get closer. Constricts when you walk away.",
+    description: "Pupil dilates dramatically as you get closer. Constricts when you walk away.",
     icon: "📏",
   },
   {
     title: "Audio Reactive",
-    description: "Pulses to bass beats, startles at loud sounds, looks toward noise.",
+    description: "Pulses to bass beats, startles at loud sounds, looks toward noise direction.",
     icon: "🔊",
   },
   {
@@ -36,7 +37,7 @@ const FEATURES = [
   },
   {
     title: "60fps Rendering",
-    description: "Smooth parallax eye animation with predict-to-vsync pipeline.",
+    description: "Smooth parallax animation with predict-to-vsync pipeline on Raspberry Pi.",
     icon: "🎯",
   },
   {
@@ -47,36 +48,50 @@ const FEATURES = [
 ];
 
 const REFERENCES = [
+  { name: "opencv/opencv", description: "DNN face detection, MOG2 background subtraction", url: "https://github.com/opencv/opencv" },
+  { name: "google-ai-edge/mediapipe", description: "Face detection and landmark tracking", url: "https://github.com/google-ai-edge/mediapipe" },
+  { name: "pageauc/motion-track", description: "Motion tracking with OpenCV on Raspberry Pi", url: "https://github.com/pageauc/motion-track" },
+  { name: "pageauc/speed-camera", description: "Speed camera using motion tracking", url: "https://github.com/pageauc/speed-camera" },
+  { name: "Uberi/MotionTracking", description: "Real-time motion tracking algorithms", url: "https://github.com/Uberi/MotionTracking" },
+];
+
+const BADGES = [
+  { label: "Open Source", icon: "⚡" },
+  { label: "60fps", icon: "🎯" },
+  { label: "MIT Licensed", icon: "📜" },
+  { label: "Raspberry Pi 5", icon: "🍓" },
+];
+
+const STEPS = [
   {
-    name: "pageauc/motion-track",
-    description: "Motion tracking with OpenCV on Raspberry Pi",
-    url: "https://github.com/pageauc/motion-track",
+    step: "1",
+    title: "Flash Raspberry Pi OS",
+    desc: "Flash Pi OS Bookworm 64-bit to a microSD card. Enable SSH, set hostname to raspieyes.",
   },
   {
-    name: "pageauc/speed-camera",
-    description: "Speed camera using motion tracking and OpenCV",
-    url: "https://github.com/pageauc/speed-camera",
+    step: "2",
+    title: "Connect Hardware",
+    desc: "Plug both round HDMI screens, camera module (CSI ribbon), and power.",
   },
   {
-    name: "Uberi/MotionTracking",
-    description: "Real-time motion tracking algorithms",
-    url: "https://github.com/Uberi/MotionTracking",
+    step: "3",
+    title: "Clone & Install",
+    code: "git clone https://github.com/alevizio/raspieyes.git\ncd raspieyes && bash setup.sh",
   },
   {
-    name: "opencv/opencv",
-    description: "Computer vision library — DNN face detection, MOG2 background subtraction",
-    url: "https://github.com/opencv/opencv",
+    step: "4",
+    title: "Configure",
+    desc: "Edit config.txt — set RENDER_MODE=parallax, TRACKING=yes, choose your eye color.",
   },
   {
-    name: "google-ai-edge/mediapipe",
-    description: "Face detection and landmark tracking",
-    url: "https://github.com/google-ai-edge/mediapipe",
+    step: "5",
+    title: "Reboot & Enjoy",
+    code: "sudo reboot",
+    desc: "Eyes start on boot. Walk in front of the camera.",
   },
 ];
 
 export default function Home() {
-  // Use refs instead of state — no React re-renders on mouse move
-  const mouseRef = useRef({ x: 0, y: 0 });
   const eyeLeftRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
   const eyeRightRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
 
@@ -84,7 +99,6 @@ export default function Home() {
     const handleMouse = (e: MouseEvent) => {
       const nx = (e.clientX / window.innerWidth - 0.5) * 2;
       const ny = (e.clientY / window.innerHeight - 0.5) * 2;
-      // Update refs directly — no re-render
       eyeLeftRef.current?.setTarget(nx, ny);
       eyeRightRef.current?.setTarget(nx, ny);
     };
@@ -93,175 +107,221 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* Hero — Full-screen eyes */}
+    <main className="min-h-screen text-white">
+      {/* ── Hero ── */}
       <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
-        <div className="flex items-center gap-8 md:gap-16">
+        {/* Radial glow behind eyes */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.06),transparent_60%)]" />
+
+        <div className="relative flex items-center gap-6 md:gap-14 mb-12">
           <Eye ref={eyeLeftRef} isLeft={true} />
           <Eye ref={eyeRightRef} isLeft={false} />
         </div>
-        <div className="absolute bottom-12 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-3">
-            raspi<span className="text-blue-400">eyes</span>
+
+        <div className="relative text-center px-6">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
+            raspi<em className="not-italic text-blue-400">eyes</em>
           </h1>
-          <p className="text-lg md:text-xl text-zinc-400 max-w-md mx-auto">
-            Lifelike eyes that follow you. Built with Raspberry Pi.
+          <p className="text-lg md:text-2xl text-zinc-500 max-w-lg mx-auto leading-relaxed">
+            Lifelike eyes that follow you.{" "}
+            <span className="text-zinc-400">Built with Raspberry Pi.</span>
           </p>
-          <div className="mt-6 flex gap-4 justify-center">
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://github.com/alevizio/raspieyes"
-              className="px-6 py-3 bg-white text-black rounded-full font-medium hover:bg-zinc-200 transition-colors"
+              className="px-8 py-3.5 bg-blue-500 text-white rounded-full font-medium hover:bg-blue-400 transition-all duration-300 hover:shadow-[0_0_24px_rgba(59,130,246,0.3)]"
             >
               View on GitHub
             </a>
             <a
               href="#build"
-              className="px-6 py-3 border border-zinc-700 rounded-full font-medium hover:border-zinc-500 transition-colors"
+              className="px-8 py-3.5 border border-zinc-700/60 rounded-full font-medium text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300"
             >
               Build Your Own
             </a>
           </div>
         </div>
-        <p className="absolute bottom-4 text-xs text-zinc-600">
+
+        <p className="absolute bottom-6 text-xs text-zinc-600 animate-pulse">
           Move your mouse — the eyes are watching
         </p>
       </section>
 
-      {/* Features */}
+      {/* ── Trust Badges ── */}
+      <FadeIn className="flex flex-wrap justify-center gap-3 px-6 -mt-8 mb-24">
+        {BADGES.map((b) => (
+          <span
+            key={b.label}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/40 text-sm text-zinc-400 backdrop-blur-sm"
+          >
+            <span>{b.icon}</span>
+            {b.label}
+          </span>
+        ))}
+      </FadeIn>
+
+      {/* ── Features ── */}
       <section className="py-24 px-6 max-w-5xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-16">
-          What it does
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FEATURES.map((f) => (
-            <div
-              key={f.title}
-              className="p-6 rounded-2xl bg-zinc-900/50 border border-zinc-800"
-            >
-              <span className="text-3xl">{f.icon}</span>
-              <h3 className="text-lg font-semibold mt-3 mb-2">{f.title}</h3>
-              <p className="text-zinc-400 text-sm leading-relaxed">
-                {f.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+        <FadeIn>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
+            What it <em className="italic text-blue-400 font-serif">does</em>
+          </h2>
+          <p className="text-zinc-500 text-center text-lg mb-16 max-w-xl mx-auto">
+            Real-time rendered eyes that react to everything around them.
+          </p>
+        </FadeIn>
 
-      {/* Build Guide */}
-      <section id="build" className="py-24 px-6 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4">
-          Build Your Own
-        </h2>
-        <p className="text-zinc-400 text-center mb-16 max-w-2xl mx-auto">
-          Everything you need to create your own pair of tracking eyes
-          for Burning Man, Halloween, or any art installation.
-        </p>
-
-        {/* Hardware */}
-        <h3 className="text-xl font-semibold mb-6">Hardware</h3>
-        <div className="overflow-x-auto mb-12">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="py-3 pr-4 text-zinc-400 font-medium">Part</th>
-                <th className="py-3 pr-4 text-zinc-400 font-medium">Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              {HARDWARE_BOM.map((h) => (
-                <tr key={h.item} className="border-b border-zinc-800/50">
-                  <td className="py-3 pr-4">{h.item}</td>
-                  <td className="py-3 pr-4 text-zinc-400">{h.price}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Setup Steps */}
-        <h3 className="text-xl font-semibold mb-6">Quick Start</h3>
-        <div className="space-y-6">
-          {[
-            {
-              step: "1",
-              title: "Flash Raspberry Pi OS",
-              desc: "Flash Raspberry Pi OS Bookworm 64-bit to a microSD card. Enable SSH.",
-            },
-            {
-              step: "2",
-              title: "Connect Hardware",
-              desc: "Plug in both round HDMI screens, camera module (CSI ribbon cable), and power.",
-            },
-            {
-              step: "3",
-              title: "Clone & Install",
-              code: "git clone https://github.com/alevizio/raspieyes.git\ncd raspieyes && bash setup.sh",
-            },
-            {
-              step: "4",
-              title: "Configure",
-              desc: "Edit config.txt to set RENDER_MODE=parallax, TRACKING=yes, and your preferred eye color.",
-            },
-            {
-              step: "5",
-              title: "Reboot & Enjoy",
-              code: "sudo reboot",
-              desc: "The eyes start automatically on boot. Walk in front of the camera!",
-            },
-          ].map((s) => (
-            <div
-              key={s.step}
-              className="flex gap-4 p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/50"
-            >
-              <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-sm font-bold">
-                {s.step}
-              </span>
-              <div>
-                <h4 className="font-medium mb-1">{s.title}</h4>
-                {s.desc && (
-                  <p className="text-zinc-400 text-sm">{s.desc}</p>
-                )}
-                {s.code && (
-                  <pre className="mt-2 p-3 rounded-lg bg-black text-sm text-green-400 overflow-x-auto">
-                    {s.code}
-                  </pre>
-                )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {FEATURES.map((f, i) => (
+            <FadeIn key={f.title} delay={i * 80}>
+              <div className="group p-7 rounded-2xl bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-600/60 transition-all duration-300">
+                <div className="w-11 h-11 rounded-xl bg-zinc-800/60 flex items-center justify-center text-2xl mb-4 group-hover:bg-zinc-700/60 transition-colors">
+                  {f.icon}
+                </div>
+                <h3 className="text-base font-semibold mb-2 text-zinc-100">
+                  {f.title}
+                </h3>
+                <p className="text-zinc-500 text-sm leading-relaxed">
+                  {f.description}
+                </p>
               </div>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* References */}
+      {/* ── Build Guide ── */}
+      <section id="build" className="py-24 px-6 max-w-4xl mx-auto">
+        <FadeIn>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
+            Build Your <em className="italic text-blue-400 font-serif">Own</em>
+          </h2>
+          <p className="text-zinc-500 text-center text-lg mb-20 max-w-xl mx-auto">
+            Everything you need to make a pair of tracking eyes.
+          </p>
+        </FadeIn>
+
+        {/* Hardware BOM */}
+        <FadeIn className="mb-20">
+          <h3 className="text-xl font-semibold mb-6 text-zinc-200">Hardware</h3>
+          <div className="rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-zinc-800/60">
+                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider">Part</th>
+                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider">Price</th>
+                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {HARDWARE_BOM.map((h, i) => (
+                  <tr
+                    key={h.item}
+                    className={`border-b border-zinc-800/30 ${i % 2 === 0 ? "bg-zinc-900/20" : ""}`}
+                  >
+                    <td className="py-3 px-5 text-zinc-200">{h.item}</td>
+                    <td className="py-3 px-5 text-zinc-400 font-mono text-xs">{h.price}</td>
+                    <td className="py-3 px-5 text-zinc-600 text-xs hidden sm:table-cell">{h.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FadeIn>
+
+        {/* Quick Start — Timeline */}
+        <FadeIn>
+          <h3 className="text-xl font-semibold mb-8 text-zinc-200">Quick Start</h3>
+          <div className="relative pl-8 border-l border-zinc-800/60">
+            {STEPS.map((s, i) => (
+              <FadeIn key={s.step} delay={i * 100}>
+                <div className="relative mb-8 last:mb-0">
+                  {/* Circle on timeline */}
+                  <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-blue-500/20 border-2 border-blue-500/50 flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  </span>
+                  <div className="p-5 rounded-xl bg-zinc-900/30 border border-zinc-800/40">
+                    <h4 className="font-medium mb-1.5 text-zinc-100">
+                      <span className="text-blue-400/70 mr-2 text-sm">0{s.step}</span>
+                      {s.title}
+                    </h4>
+                    {s.desc && (
+                      <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+                    )}
+                    {s.code && (
+                      <pre className="mt-3 p-3.5 rounded-lg bg-black/60 text-xs text-green-400/80 overflow-x-auto font-mono leading-relaxed">
+                        {s.code}
+                      </pre>
+                    )}
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </FadeIn>
+      </section>
+
+      {/* ── References ── */}
       <section className="py-24 px-6 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4">
-          Built With
-        </h2>
-        <p className="text-zinc-400 text-center mb-12 max-w-2xl mx-auto">
-          Open source projects that made this possible.
-        </p>
+        <FadeIn>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
+            Built <em className="italic text-blue-400 font-serif">With</em>
+          </h2>
+          <p className="text-zinc-500 text-center text-lg mb-12 max-w-xl mx-auto">
+            Open source projects that made this possible.
+          </p>
+        </FadeIn>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {REFERENCES.map((r) => (
-            <a
-              key={r.name}
-              href={r.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col p-4 rounded-xl bg-zinc-900/30 border border-zinc-800/50 hover:border-zinc-600 transition-colors"
-            >
-              <span className="text-sm font-mono text-blue-400">{r.name}</span>
-              <span className="text-zinc-500 text-xs mt-1">{r.description}</span>
-            </a>
+          {REFERENCES.map((r, i) => (
+            <FadeIn key={r.name} delay={i * 60}>
+              <a
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-3 p-5 rounded-xl bg-zinc-900/30 border border-zinc-800/40 hover:border-zinc-600/50 transition-all duration-300"
+              >
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-mono text-blue-400 group-hover:text-blue-300 transition-colors">
+                    {r.name}
+                  </span>
+                  <span className="block text-zinc-500 text-xs mt-1.5 leading-relaxed">
+                    {r.description}
+                  </span>
+                </div>
+                <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors mt-0.5">
+                  ↗
+                </span>
+              </a>
+            </FadeIn>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-6 border-t border-zinc-800 text-center text-zinc-500 text-sm">
-        <p>
+      {/* ── Footer CTA ── */}
+      <section className="py-32 px-6 relative">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.04),transparent_60%)]" />
+        <FadeIn className="relative text-center">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+            Ready to <em className="italic text-blue-400 font-serif">build</em>?
+          </h2>
+          <p className="text-zinc-500 text-lg mb-10 max-w-md mx-auto">
+            Clone the repo, flash a Pi, and bring your art to life.
+          </p>
+          <a
+            href="https://github.com/alevizio/raspieyes"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-blue-500 text-white rounded-full font-medium text-lg hover:bg-blue-400 transition-all duration-300 hover:shadow-[0_0_32px_rgba(59,130,246,0.3)]"
+          >
+            ⭐ Star on GitHub
+          </a>
+        </FadeIn>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="py-16 px-6 border-t border-zinc-800/40 text-center">
+        <p className="text-zinc-500 text-sm">
           Built for{" "}
-          <span className="text-orange-400">Burning Man 2026</span> by{" "}
+          <span className="text-orange-400/80">Burning Man 2026</span> by{" "}
           <a
             href="https://github.com/alevizio"
             className="text-zinc-300 hover:text-white transition-colors"
@@ -269,10 +329,10 @@ export default function Home() {
             Alejandro
           </a>
         </p>
-        <p className="mt-2">
+        <p className="mt-3 text-zinc-600 text-xs">
           <a
             href="https://github.com/alevizio/raspieyes"
-            className="hover:text-white transition-colors"
+            className="hover:text-zinc-400 transition-colors"
           >
             GitHub
           </a>

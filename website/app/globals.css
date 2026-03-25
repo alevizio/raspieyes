@@ -3,18 +3,60 @@
 :root {
   --bg: #000000;
   --text: #f0f0f0;
-  --accent: #4a8fd4;
-  --accent-glow: #6bb3ff;
-  --muted: #666;
+  --accent: #3b82f6;
+  --accent-glow: #60a5fa;
+  --accent-secondary: #a78bfa;
+  --surface: #0a0a0a;
+  --surface-elevated: #141414;
+  --border: #1e1e1e;
+  --border-hover: #2e2e2e;
+  --muted: #71717a;
+  --text-secondary: #a1a1aa;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--bg);
+  background: radial-gradient(ellipse at 50% 0%, #0a0a0a 0%, #000000 70%);
   color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
 
 ::selection {
   background: var(--accent);
   color: white;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
