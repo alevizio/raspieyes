@@ -126,14 +126,18 @@ const drawCrosshatch = (
   ctx.globalAlpha = 1;
 };
 
+export type EyeSkin = "handdrawn" | "realistic";
+
 export const Eye = forwardRef<EyeHandle, {
   className?: string;
   config?: EyeConfig;
   isLeft?: boolean;
+  skin?: EyeSkin;
 }>(({
   className,
   config = DEFAULT_CONFIG,
   isLeft = true,
+  skin = "handdrawn",
 }, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -142,6 +146,8 @@ export const Eye = forwardRef<EyeHandle, {
   configRef.current = config;
   const isLeftRef = useRef(isLeft);
   isLeftRef.current = isLeft;
+  const skinRef = useRef(skin);
+  skinRef.current = skin;
 
   useImperativeHandle(ref, () => ({
     setTarget: (x: number, y: number) => {
@@ -242,11 +248,26 @@ export const Eye = forwardRef<EyeHandle, {
     const rawY = (anim.currentY + anim.saccadeY) * maxOffset * size;
     const crossEye = left ? 8 : -8;
 
-    // Seeded RNG — stable per frame so stipple doesn't flicker
-    const rng = mulberry32(42);
+    const currentSkin = skinRef.current;
 
     // --- Clear (transparent) ---
     ctx.clearRect(0, 0, size, size);
+
+    if (currentSkin === "realistic") {
+      drawRealistic(ctx, cx, cy, scleraR, irisR, pupilR, rawX, rawY, crossEye, parallax, size, anim, cfg, breathe);
+    } else {
+      drawHanddrawn(ctx, cx, cy, scleraR, irisR, pupilR, rawX, rawY, crossEye, parallax, size, anim, breathe);
+    }
+  };
+
+  const drawHanddrawn = (
+    ctx: CanvasRenderingContext2D,
+    cx: number, cy: number, scleraR: number, irisR: number, pupilR: number,
+    rawX: number, rawY: number, crossEye: number,
+    parallax: { sclera: number; iris: number; pupil: number },
+    size: number, anim: typeof animRef.current, breathe: number
+  ) => {
+    const rng = mulberry32(42);
 
     // --- Sclera (stippled white) ---
     const sDx = rawX * parallax.sclera;
@@ -259,22 +280,33 @@ export const Eye = forwardRef<EyeHandle, {
     drawRoughCircle(ctx, scleraCx, scleraCy, scleraR, 2.5, 120, rng);
     ctx.clip();
 
-    // Sclera fill — stipple dots creating the white eyeball
-    ctx.fillStyle = "#d8d8d0";
-    drawStipple(ctx, scleraCx, scleraCy, scleraR, 2800, 1.5, rng, 0.3);
+    // Sclera base fill — soft white
+    ctx.fillStyle = "#c0c0b8";
+    ctx.beginPath();
+    ctx.arc(scleraCx, scleraCy, scleraR, 0, TAU);
+    ctx.fill();
 
-    // Denser white near center
+    // Sclera stipple — adds texture on top of base
     ctx.fillStyle = "#e8e8e4";
-    drawStipple(ctx, scleraCx, scleraCy, scleraR * 0.6, 800, 1.8, rng, 0.5);
+    drawStipple(ctx, scleraCx, scleraCy, scleraR, 3500, 1.5, rng, 0.3);
+
+    // Bright center — makes it pop
+    ctx.fillStyle = "#f4f4f0";
+    drawStipple(ctx, scleraCx, scleraCy, scleraR * 0.55, 1200, 1.8, rng, 0.6);
+
+    // Extra bright core
+    ctx.fillStyle = "#ffffff";
+    drawStipple(ctx, scleraCx, scleraCy, scleraR * 0.3, 400, 1.5, rng, 0.8);
 
     // Edge shadow — denser dark dots near rim
-    ctx.fillStyle = "#1a1a1a";
-    for (let i = 0; i < 600; i++) {
+    ctx.fillStyle = "#0a0a0a";
+    for (let i = 0; i < 800; i++) {
       const a = rng() * TAU;
-      const r = scleraR * (0.75 + rng() * 0.25);
+      const r = scleraR * (0.7 + rng() * 0.3);
       const x = scleraCx + Math.cos(a) * r;
       const y = scleraCy + Math.sin(a) * r;
-      ctx.globalAlpha = 0.1 + rng() * 0.25;
+      const edgeness = (r - scleraR * 0.7) / (scleraR * 0.3);
+      ctx.globalAlpha = edgeness * (0.15 + rng() * 0.3);
       const ds = 1 + rng() * 1.5;
       ctx.fillRect(x, y, ds, ds);
     }
@@ -318,19 +350,19 @@ export const Eye = forwardRef<EyeHandle, {
     ctx.fill();
 
     // Iris ring — stipple to create the mid-tone
-    ctx.fillStyle = "#999990";
-    drawStipple(ctx, irisCx, irisCy, irisR, 1200, 1.2, rng, 0.2);
+    ctx.fillStyle = "#b8b8b0";
+    drawStipple(ctx, irisCx, irisCy, irisR, 1500, 1.2, rng, 0.2);
 
-    // Inner glow near pupil
-    ctx.fillStyle = "#b0b0a8";
-    drawStipple(ctx, irisCx, irisCy, irisR * 0.55, 400, 1.0, rng, 0.6);
+    // Inner glow near pupil — brighter ring
+    ctx.fillStyle = "#d8d8d0";
+    drawStipple(ctx, irisCx, irisCy, irisR * 0.55, 600, 1.0, rng, 0.6);
 
     // Crosshatch strokes — the main texture
-    ctx.strokeStyle = "#c8c8c0";
-    drawCrosshatch(ctx, irisCx, irisCy, pupilR * 1.1, irisR * 0.95, 100, rng);
+    ctx.strokeStyle = "#e0e0d8";
+    drawCrosshatch(ctx, irisCx, irisCy, pupilR * 1.1, irisR * 0.95, 110, rng);
 
     // Darker crosshatch overlay for depth
-    ctx.strokeStyle = "#404038";
+    ctx.strokeStyle = "#505048";
     drawCrosshatch(ctx, irisCx, irisCy, pupilR * 1.3, irisR * 0.7, 40, rng);
 
     // Iris outer edge ring — dark stroke
@@ -398,6 +430,156 @@ export const Eye = forwardRef<EyeHandle, {
     ctx.restore();
 
     // --- Eyelids (blink) ---
+    if (anim.blinkProgress > 0.01) {
+      const lidTravel = anim.blinkProgress * (scleraR + 4);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, scleraR, 0, TAU);
+      ctx.clip();
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, cy - scleraR - 4, size, lidTravel);
+      ctx.fillRect(0, cy + scleraR + 4 - lidTravel, size, lidTravel);
+      ctx.restore();
+    }
+  };
+
+  const drawRealistic = (
+    ctx: CanvasRenderingContext2D,
+    cx: number, cy: number, scleraR: number, irisR: number, pupilR: number,
+    rawX: number, rawY: number, crossEye: number,
+    parallax: { sclera: number; iris: number; pupil: number },
+    size: number, anim: typeof animRef.current, cfg: EyeConfig, breathe: number
+  ) => {
+    const sDx = rawX * parallax.sclera;
+    const sDy = rawY * parallax.sclera;
+
+    // Sclera
+    const scleraGrad = ctx.createRadialGradient(
+      cx + sDx - scleraR * 0.25, cy + sDy - scleraR * 0.3, scleraR * 0.1,
+      cx + sDx, cy + sDy, scleraR
+    );
+    scleraGrad.addColorStop(0, "#ffffff");
+    scleraGrad.addColorStop(0.6, cfg.scleraColor);
+    scleraGrad.addColorStop(0.85, "#c8c0b8");
+    scleraGrad.addColorStop(1, "#8a827a");
+    ctx.beginPath();
+    ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
+    ctx.fillStyle = scleraGrad;
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx + sDx, cy + sDy, scleraR, 0, TAU);
+    ctx.clip();
+
+    // Shadow ring
+    const shadowGrad = ctx.createRadialGradient(cx + sDx, cy + sDy, irisR * 0.9, cx + sDx, cy + sDy, irisR * 1.4);
+    shadowGrad.addColorStop(0, "rgba(10,5,15,0.5)");
+    shadowGrad.addColorStop(1, "rgba(10,5,15,0)");
+    ctx.beginPath();
+    ctx.arc(cx + sDx, cy + sDy, irisR * 1.4, 0, TAU);
+    ctx.fillStyle = shadowGrad;
+    ctx.fill();
+
+    // Veins
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * TAU + 0.3;
+      const startR = scleraR * 0.75;
+      ctx.beginPath();
+      ctx.moveTo(cx + sDx + Math.cos(angle) * startR, cy + sDy + Math.sin(angle) * startR);
+      for (let s = 0; s < 5; s++) {
+        const frac = s / 5;
+        const r = startR - frac * scleraR * 0.3;
+        const a = angle + Math.sin(frac * Math.PI * 2) * 0.15;
+        ctx.lineTo(cx + sDx + Math.cos(a) * r, cy + sDy + Math.sin(a) * r);
+      }
+      ctx.strokeStyle = "#b03030";
+      ctx.lineWidth = 1.5 - i * 0.1;
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Iris
+    const iDx = rawX * parallax.iris + crossEye;
+    const iDy = rawY * parallax.iris;
+    const irisGrad = ctx.createRadialGradient(cx + iDx, cy + iDy, pupilR * 0.8, cx + iDx, cy + iDy, irisR);
+    irisGrad.addColorStop(0, cfg.irisColors[2]);
+    irisGrad.addColorStop(0.4, cfg.irisColors[1]);
+    irisGrad.addColorStop(0.75, cfg.irisColors[0]);
+    irisGrad.addColorStop(1, "#0a1a30");
+    ctx.beginPath();
+    ctx.arc(cx + iDx, cy + iDy, irisR, 0, TAU);
+    ctx.fillStyle = irisGrad;
+    ctx.fill();
+
+    // Iris fibers
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    for (let i = 0; i < 60; i++) {
+      const angle = (i / 60) * TAU;
+      const innerR = pupilR * 1.1 + Math.random() * irisR * 0.1;
+      const outerR = irisR * (0.6 + Math.random() * 0.35);
+      ctx.beginPath();
+      ctx.moveTo(cx + iDx + Math.cos(angle) * innerR, cy + iDy + Math.sin(angle) * innerR);
+      ctx.lineTo(cx + iDx + Math.cos(angle + 0.02) * outerR, cy + iDy + Math.sin(angle + 0.02) * outerR);
+      const brightness = 120 + Math.floor(Math.random() * 100);
+      ctx.strokeStyle = `rgba(${brightness},${brightness + 40},${brightness + 80},0.4)`;
+      ctx.lineWidth = 1 + Math.random();
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Pupil
+    const pDx = rawX * parallax.pupil + crossEye;
+    const pDy = rawY * parallax.pupil;
+    const dilatedR = pupilR * (anim.pupilDilation + breathe);
+    const pupilGrad = ctx.createRadialGradient(cx + pDx, cy + pDy, 0, cx + pDx, cy + pDy, dilatedR);
+    pupilGrad.addColorStop(0, cfg.pupilColor);
+    pupilGrad.addColorStop(0.8, cfg.pupilColor);
+    pupilGrad.addColorStop(1, "rgba(5,5,5,0)");
+    ctx.beginPath();
+    ctx.arc(cx + pDx, cy + pDy, dilatedR, 0, TAU);
+    ctx.fillStyle = pupilGrad;
+    ctx.fill();
+
+    // Highlights
+    const hlR = size * 0.035;
+    const hlX = cx + pDx - dilatedR * 0.3;
+    const hlY = cy + pDy - dilatedR * 0.3;
+    const hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
+    hlGrad.addColorStop(0, cfg.highlightColor);
+    hlGrad.addColorStop(0.6, "rgba(255,255,255,0.5)");
+    hlGrad.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.beginPath();
+    ctx.arc(hlX, hlY, hlR, 0, TAU);
+    ctx.fillStyle = hlGrad;
+    ctx.fill();
+
+    const hl2X = cx + pDx + dilatedR * 0.2;
+    const hl2Y = cy + pDy + dilatedR * 0.25;
+    ctx.beginPath();
+    ctx.arc(hl2X, hl2Y, hlR * 0.4, 0, TAU);
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.fill();
+
+    // Gloss
+    const glossOverlay = ctx.createRadialGradient(
+      cx - scleraR * 0.2, cy - scleraR * 0.25, scleraR * 0.05,
+      cx - scleraR * 0.2, cy - scleraR * 0.25, scleraR * 0.8
+    );
+    glossOverlay.addColorStop(0, "rgba(255,255,255,0.18)");
+    glossOverlay.addColorStop(0.5, "rgba(255,255,255,0.05)");
+    glossOverlay.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.beginPath();
+    ctx.arc(cx, cy, scleraR, 0, TAU);
+    ctx.fillStyle = glossOverlay;
+    ctx.fill();
+
+    ctx.restore();
+
+    // Eyelids
     if (anim.blinkProgress > 0.01) {
       const lidTravel = anim.blinkProgress * (scleraR + 4);
       ctx.save();

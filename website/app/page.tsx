@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Eye } from "@/components/eye";
+import { Eye, type EyeSkin } from "@/components/eye";
 import { FadeIn } from "@/components/fade-in";
 
 const HARDWARE_BOM = [
@@ -182,9 +182,15 @@ const FaqSection = () => {
   );
 };
 
+const SKINS: { id: EyeSkin; label: string }[] = [
+  { id: "handdrawn", label: "Sketch" },
+  { id: "realistic", label: "Realistic" },
+];
+
 export default function Home() {
   const eyeLeftRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
   const eyeRightRef = useRef<{ setTarget: (x: number, y: number) => void }>(null);
+  const [skin, setSkin] = useState<EyeSkin>("handdrawn");
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
@@ -205,8 +211,25 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.06),transparent_60%)]" />
 
         <div className="relative flex items-center gap-6 md:gap-14 mb-12">
-          <Eye ref={eyeLeftRef} isLeft={true} />
-          <Eye ref={eyeRightRef} isLeft={false} />
+          <Eye ref={eyeLeftRef} isLeft={true} skin={skin} />
+          <Eye ref={eyeRightRef} isLeft={false} skin={skin} />
+        </div>
+
+        {/* Skin toggle */}
+        <div className="relative flex items-center justify-center gap-1 mb-6">
+          {SKINS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSkin(s.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                skin === s.id
+                  ? "bg-[#004C7C] text-white"
+                  : "text-[#9aa0a6] hover:text-[#e3e3e3]"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
         </div>
 
         <div className="relative text-center px-6">
