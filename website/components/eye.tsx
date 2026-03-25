@@ -320,16 +320,20 @@ export const Eye = forwardRef<EyeHandle, {
     ctx.fillStyle = glossOverlay;
     ctx.fill();
 
-    // --- Eyelids (blink) ---
+    // --- Eyelids (blink) — clipped to eye circle ---
     if (anim.blinkProgress > 0.01) {
-      const lidTravel = anim.blinkProgress * (size / 2 + 10);
-      ctx.fillStyle = "#0a0806";
+      const lidTravel = anim.blinkProgress * (scleraR + 4);
+      ctx.save();
+      // Clip to sclera circle so lids only cover the eyeball
       ctx.beginPath();
-      ctx.rect(0, 0, size, cy - scleraR + lidTravel);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.rect(0, cy + scleraR - lidTravel, size, size);
-      ctx.fill();
+      ctx.arc(cx, cy, scleraR, 0, TAU);
+      ctx.clip();
+      ctx.fillStyle = "#000000";
+      // Top lid
+      ctx.fillRect(0, cy - scleraR - 4, size, lidTravel);
+      // Bottom lid
+      ctx.fillRect(0, cy + scleraR + 4 - lidTravel, size, lidTravel);
+      ctx.restore();
     }
   };
 
