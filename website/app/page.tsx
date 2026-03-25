@@ -356,7 +356,7 @@ export default function Home() {
                   <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#004C7C]" />
                   </span>
-                  <div className="p-5 rounded-xl bg-transparent border border-[#303134]/40">
+                  <div className="pb-2">
                     <h4 className="font-medium mb-1.5 text-[#e3e3e3]">
                       <span className="text-[#004C7C]/70 mr-2 text-sm">0{s.step}</span>
                       {s.title}
