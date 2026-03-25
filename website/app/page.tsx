@@ -202,7 +202,7 @@ export default function Home() {
       {/* ── Hero ── */}
       <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
         {/* Radial glow behind eyes */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(138,180,248,0.06),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.06),transparent_60%)]" />
 
         <div className="relative flex items-center gap-6 md:gap-14 mb-12">
           <Eye ref={eyeLeftRef} isLeft={true} />
@@ -222,7 +222,7 @@ export default function Home() {
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://github.com/alevizio/raspieyes"
-              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#8ab4f8] text-[#131314] rounded-full font-medium hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_24px_rgba(138,180,248,0.3)]"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#004C7C] text-white rounded-full font-medium hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_24px_rgba(0,76,124,0.3)]"
             >
               <img src="https://alevizio.github.io/icons/svg/tabler/outline/brand-github.svg" alt="" width={20} height={20} />
               View on GitHub
@@ -244,7 +244,7 @@ export default function Home() {
         {BADGES.map((b) => (
           <span
             key={b.label}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1e1f20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1E1F20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
           >
             <img src={b.icon} alt="" width={20} height={20} className="invert opacity-60" />
             {b.label}
@@ -266,7 +266,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
-              <div className="group p-7 rounded-2xl bg-[#1e1f20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
+              <div className="group p-7 rounded-2xl bg-[#1E1F20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
                 <div className="mb-5">
                   <img src={f.icon} alt="" width={36} height={36} className="invert opacity-70" />
                 </div>
@@ -296,7 +296,7 @@ export default function Home() {
         {/* Hardware BOM */}
         <FadeIn className="mb-20">
           <h3 className="text-xl font-semibold mb-6 text-[#e3e3e3]">Hardware</h3>
-          <div className="rounded-2xl bg-[#1e1f20]/60 border border-[#303134]/50 overflow-hidden">
+          <div className="rounded-2xl bg-[#1E1F20]/60 border border-[#303134]/50 overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-[#303134]/60">
@@ -309,7 +309,7 @@ export default function Home() {
                 {HARDWARE_BOM.map((h, i) => (
                   <tr
                     key={h.item}
-                    className={`border-b border-[#303134]/30 ${i % 2 === 0 ? "bg-[#1e1f20]/40" : ""}`}
+                    className={`border-b border-[#303134]/30 ${i % 2 === 0 ? "bg-[#1E1F20]/40" : ""}`}
                   >
                     <td className="py-3 px-5 text-[#e3e3e3]">{h.item}</td>
                     <td className="py-3 px-5 text-[#bdc1c6] font-mono text-xs">{h.price}</td>
@@ -332,7 +332,7 @@ export default function Home() {
                   <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#8ab4f8]/20 border-2 border-[#8ab4f8]/50 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#8ab4f8]" />
                   </span>
-                  <div className="p-5 rounded-xl bg-[#1e1f20]/60 border border-[#303134]/40">
+                  <div className="p-5 rounded-xl bg-[#1E1F20]/60 border border-[#303134]/40">
                     <h4 className="font-medium mb-1.5 text-[#e3e3e3]">
                       <span className="text-[#8ab4f8]/70 mr-2 text-sm">0{s.step}</span>
                       {s.title}
@@ -371,7 +371,7 @@ export default function Home() {
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-start gap-3 p-5 rounded-xl bg-[#1e1f20]/60 border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
+                className="group flex items-start gap-3 p-5 rounded-xl bg-[#1E1F20]/60 border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
               >
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-mono text-[#8ab4f8] group-hover:text-[#aecbfa] transition-colors">
@@ -395,7 +395,7 @@ export default function Home() {
 
       {/* ── Footer CTA ── */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(138,180,248,0.04),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,76,124,0.04),transparent_60%)]" />
         <FadeIn className="relative text-center">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
             Ready to <em className="italic text-[#8ab4f8] font-[Datatype]">build</em>?
@@ -405,7 +405,7 @@ export default function Home() {
           </p>
           <a
             href="https://github.com/alevizio/raspieyes"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-[#8ab4f8] text-[#131314] rounded-full font-medium text-lg hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_32px_rgba(138,180,248,0.3)]"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-[#004C7C] text-white rounded-full font-medium text-lg hover:bg-[#006399] transition-all duration-300 hover:shadow-[0_0_32px_rgba(0,76,124,0.3)]"
           >
             <img src={`${ICON_BASE}/social-rewards/social-rewards-rating-star-2.svg`} alt="" width={22} height={22} className="invert" />
             Star on GitHub
