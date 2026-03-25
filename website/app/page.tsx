@@ -351,7 +351,7 @@ export default function Home() {
           <div className="relative pl-8 border-l border-[#303134]/60">
             {STEPS.map((s, i) => (
               <FadeIn key={s.step} delay={i * 100}>
-                <div className="relative mb-16 last:mb-0">
+                <div className="relative mb-24 last:mb-0">
                   {/* Circle on timeline */}
                   <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#004C7C]/20 border-2 border-[#004C7C]/50 flex items-center justify-center">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#004C7C]" />
