@@ -129,14 +129,14 @@ const STEPS = [
 const FaqItem = ({ q, a, open, onClick }: { q: string; a: string; open: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className="w-full text-left py-5 border-b border-zinc-800/40 group"
+    className="w-full text-left py-5 border-b border-[#303134]/40 group"
   >
     <div className="flex items-start justify-between gap-4">
-      <h3 className="font-medium text-zinc-200 group-hover:text-white transition-colors">
+      <h3 className="font-medium text-[#e3e3e3] group-hover:text-white transition-colors">
         {q}
       </h3>
       <span
-        className={`flex-shrink-0 text-zinc-600 transition-transform duration-300 mt-0.5 ${open ? "rotate-45" : ""}`}
+        className={`flex-shrink-0 text-[#9aa0a6]/60 transition-transform duration-300 mt-0.5 ${open ? "rotate-45" : ""}`}
       >
         +
       </span>
@@ -144,7 +144,7 @@ const FaqItem = ({ q, a, open, onClick }: { q: string; a: string; open: boolean;
     <div
       className={`overflow-hidden transition-all duration-300 ${open ? "max-h-40 opacity-100 mt-3" : "max-h-0 opacity-0"}`}
     >
-      <p className="text-zinc-500 text-sm leading-relaxed pr-8">{a}</p>
+      <p className="text-[#9aa0a6] text-sm leading-relaxed pr-8">{a}</p>
     </div>
   </button>
 );
@@ -156,9 +156,9 @@ const FaqSection = () => {
     <section className="py-24 px-6 max-w-3xl mx-auto">
       <FadeIn>
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-          Common <em className="italic text-blue-400 font-[Datatype]">Questions</em>
+          Common <em className="italic text-[#8ab4f8] font-[Datatype]">Questions</em>
         </h2>
-        <p className="text-zinc-500 text-center text-lg mb-14 max-w-xl mx-auto">
+        <p className="text-[#9aa0a6] text-center text-lg mb-14 max-w-xl mx-auto">
           Everything else you might want to know.
         </p>
       </FadeIn>
@@ -200,7 +200,7 @@ export default function Home() {
       {/* ── Hero ── */}
       <section className="h-screen flex flex-col items-center justify-center relative overflow-hidden">
         {/* Radial glow behind eyes */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.06),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(138,180,248,0.06),transparent_60%)]" />
 
         <div className="relative flex items-center gap-6 md:gap-14 mb-12">
           <Eye ref={eyeLeftRef} isLeft={true} />
@@ -209,29 +209,29 @@ export default function Home() {
 
         <div className="relative text-center px-6">
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
-            raspi<em className="not-italic text-blue-400">eyes</em>
+            raspi<em className="not-italic text-[#8ab4f8]">eyes</em>
           </h1>
-          <p className="text-lg md:text-2xl text-zinc-500 max-w-lg mx-auto leading-relaxed">
+          <p className="text-lg md:text-2xl text-[#9aa0a6] max-w-lg mx-auto leading-relaxed">
             Lifelike eyes that follow you.{" "}
-            <span className="text-zinc-400">Built with Raspberry Pi.</span>
+            <span className="text-[#bdc1c6]">Built with Raspberry Pi.</span>
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://github.com/alevizio/raspieyes"
-              className="px-8 py-3.5 bg-blue-500 text-white rounded-full font-medium hover:bg-blue-400 transition-all duration-300 hover:shadow-[0_0_24px_rgba(59,130,246,0.3)]"
+              className="px-8 py-3.5 bg-[#8ab4f8] text-[#131314] rounded-full font-medium hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_24px_rgba(138,180,248,0.3)]"
             >
               View on GitHub
             </a>
             <a
               href="#build"
-              className="px-8 py-3.5 border border-zinc-700/60 rounded-full font-medium text-zinc-300 hover:border-zinc-500 hover:text-white transition-all duration-300"
+              className="px-8 py-3.5 border border-[#444649]/60 rounded-full font-medium text-[#e3e3e3] hover:border-[#444649] hover:text-white transition-all duration-300"
             >
               Build Your Own
             </a>
           </div>
         </div>
 
-        <p className="absolute bottom-6 text-xs text-zinc-600 animate-pulse">
+        <p className="absolute bottom-6 text-xs text-[#9aa0a6]/60 animate-pulse">
           Move your mouse — the eyes are watching
         </p>
       </section>
@@ -241,7 +241,7 @@ export default function Home() {
         {BADGES.map((b) => (
           <span
             key={b.label}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-800/60 bg-zinc-900/40 text-sm text-zinc-400 backdrop-blur-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1e1f20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
           >
             <span>{b.icon}</span>
             {b.label}
@@ -253,9 +253,9 @@ export default function Home() {
       <section className="py-24 px-6 max-w-5xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            What it <em className="italic text-blue-400 font-[Datatype]">does</em>
+            What it <em className="italic text-[#8ab4f8] font-[Datatype]">does</em>
           </h2>
-          <p className="text-zinc-500 text-center text-lg mb-16 max-w-xl mx-auto">
+          <p className="text-[#9aa0a6] text-center text-lg mb-16 max-w-xl mx-auto">
             Real-time rendered eyes that react to everything around them.
           </p>
         </FadeIn>
@@ -263,14 +263,14 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
-              <div className="group p-7 rounded-2xl bg-zinc-900/40 border border-zinc-800/50 hover:border-zinc-600/60 transition-all duration-300">
-                <div className="w-11 h-11 rounded-xl bg-zinc-800/60 flex items-center justify-center text-2xl mb-4 group-hover:bg-zinc-700/60 transition-colors">
+              <div className="group p-7 rounded-2xl bg-[#1e1f20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
+                <div className="w-11 h-11 rounded-xl bg-[#282a2c]/60 flex items-center justify-center text-2xl mb-4 group-hover:bg-[#303134]/60 transition-colors">
                   {f.icon}
                 </div>
-                <h3 className="text-base font-semibold mb-2 text-zinc-100">
+                <h3 className="text-base font-semibold mb-2 text-[#e3e3e3]">
                   {f.title}
                 </h3>
-                <p className="text-zinc-500 text-sm leading-relaxed">
+                <p className="text-[#9aa0a6] text-sm leading-relaxed">
                   {f.description}
                 </p>
               </div>
@@ -283,34 +283,34 @@ export default function Home() {
       <section id="build" className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Build Your <em className="italic text-blue-400 font-[Datatype]">Own</em>
+            Build Your <em className="italic text-[#8ab4f8] font-[Datatype]">Own</em>
           </h2>
-          <p className="text-zinc-500 text-center text-lg mb-20 max-w-xl mx-auto">
+          <p className="text-[#9aa0a6] text-center text-lg mb-20 max-w-xl mx-auto">
             Everything you need to make a pair of tracking eyes.
           </p>
         </FadeIn>
 
         {/* Hardware BOM */}
         <FadeIn className="mb-20">
-          <h3 className="text-xl font-semibold mb-6 text-zinc-200">Hardware</h3>
-          <div className="rounded-2xl bg-zinc-900/30 border border-zinc-800/50 overflow-hidden">
+          <h3 className="text-xl font-semibold mb-6 text-[#e3e3e3]">Hardware</h3>
+          <div className="rounded-2xl bg-[#1e1f20]/60 border border-[#303134]/50 overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-zinc-800/60">
-                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider">Part</th>
-                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider">Price</th>
-                  <th className="py-3.5 px-5 text-zinc-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Note</th>
+                <tr className="border-b border-[#303134]/60">
+                  <th className="py-3.5 px-5 text-[#9aa0a6] font-medium text-xs uppercase tracking-wider">Part</th>
+                  <th className="py-3.5 px-5 text-[#9aa0a6] font-medium text-xs uppercase tracking-wider">Price</th>
+                  <th className="py-3.5 px-5 text-[#9aa0a6] font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Note</th>
                 </tr>
               </thead>
               <tbody>
                 {HARDWARE_BOM.map((h, i) => (
                   <tr
                     key={h.item}
-                    className={`border-b border-zinc-800/30 ${i % 2 === 0 ? "bg-zinc-900/20" : ""}`}
+                    className={`border-b border-[#303134]/30 ${i % 2 === 0 ? "bg-[#1e1f20]/40" : ""}`}
                   >
-                    <td className="py-3 px-5 text-zinc-200">{h.item}</td>
-                    <td className="py-3 px-5 text-zinc-400 font-mono text-xs">{h.price}</td>
-                    <td className="py-3 px-5 text-zinc-600 text-xs hidden sm:table-cell">{h.note}</td>
+                    <td className="py-3 px-5 text-[#e3e3e3]">{h.item}</td>
+                    <td className="py-3 px-5 text-[#bdc1c6] font-mono text-xs">{h.price}</td>
+                    <td className="py-3 px-5 text-[#9aa0a6]/60 text-xs hidden sm:table-cell">{h.note}</td>
                   </tr>
                 ))}
               </tbody>
@@ -320,22 +320,22 @@ export default function Home() {
 
         {/* Quick Start — Timeline */}
         <FadeIn>
-          <h3 className="text-xl font-semibold mb-8 text-zinc-200">Quick Start</h3>
-          <div className="relative pl-8 border-l border-zinc-800/60">
+          <h3 className="text-xl font-semibold mb-8 text-[#e3e3e3]">Quick Start</h3>
+          <div className="relative pl-8 border-l border-[#303134]/60">
             {STEPS.map((s, i) => (
               <FadeIn key={s.step} delay={i * 100}>
                 <div className="relative mb-8 last:mb-0">
                   {/* Circle on timeline */}
-                  <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-blue-500/20 border-2 border-blue-500/50 flex items-center justify-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  <span className="absolute -left-[calc(2rem+10px)] w-5 h-5 rounded-full bg-[#8ab4f8]/20 border-2 border-[#8ab4f8]/50 flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8ab4f8]" />
                   </span>
-                  <div className="p-5 rounded-xl bg-zinc-900/30 border border-zinc-800/40">
-                    <h4 className="font-medium mb-1.5 text-zinc-100">
-                      <span className="text-blue-400/70 mr-2 text-sm">0{s.step}</span>
+                  <div className="p-5 rounded-xl bg-[#1e1f20]/60 border border-[#303134]/40">
+                    <h4 className="font-medium mb-1.5 text-[#e3e3e3]">
+                      <span className="text-[#8ab4f8]/70 mr-2 text-sm">0{s.step}</span>
                       {s.title}
                     </h4>
                     {s.desc && (
-                      <p className="text-zinc-500 text-sm leading-relaxed">{s.desc}</p>
+                      <p className="text-[#9aa0a6] text-sm leading-relaxed">{s.desc}</p>
                     )}
                     {s.code && (
                       <pre className="mt-3 p-3.5 rounded-lg bg-black/60 text-xs text-green-400/80 overflow-x-auto font-mono leading-relaxed">
@@ -354,9 +354,9 @@ export default function Home() {
       <section className="py-24 px-6 max-w-4xl mx-auto">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 tracking-tight">
-            Built <em className="italic text-blue-400 font-[Datatype]">With</em>
+            Built <em className="italic text-[#8ab4f8] font-[Datatype]">With</em>
           </h2>
-          <p className="text-zinc-500 text-center text-lg mb-12 max-w-xl mx-auto">
+          <p className="text-[#9aa0a6] text-center text-lg mb-12 max-w-xl mx-auto">
             Open source projects that made this possible.
           </p>
         </FadeIn>
@@ -368,17 +368,17 @@ export default function Home() {
                 href={r.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-start gap-3 p-5 rounded-xl bg-zinc-900/30 border border-zinc-800/40 hover:border-zinc-600/50 transition-all duration-300"
+                className="group flex items-start gap-3 p-5 rounded-xl bg-[#1e1f20]/60 border border-[#303134]/40 hover:border-[#444649]/50 transition-all duration-300"
               >
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-mono text-blue-400 group-hover:text-blue-300 transition-colors">
+                  <span className="text-sm font-mono text-[#8ab4f8] group-hover:text-[#aecbfa] transition-colors">
                     {r.name}
                   </span>
-                  <span className="block text-zinc-500 text-xs mt-1.5 leading-relaxed">
+                  <span className="block text-[#9aa0a6] text-xs mt-1.5 leading-relaxed">
                     {r.description}
                   </span>
                 </div>
-                <span className="text-zinc-600 group-hover:text-zinc-400 transition-colors mt-0.5">
+                <span className="text-[#9aa0a6]/60 group-hover:text-[#bdc1c6] transition-colors mt-0.5">
                   ↗
                 </span>
               </a>
@@ -392,17 +392,17 @@ export default function Home() {
 
       {/* ── Footer CTA ── */}
       <section className="py-32 px-6 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.04),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(138,180,248,0.04),transparent_60%)]" />
         <FadeIn className="relative text-center">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Ready to <em className="italic text-blue-400 font-[Datatype]">build</em>?
+            Ready to <em className="italic text-[#8ab4f8] font-[Datatype]">build</em>?
           </h2>
-          <p className="text-zinc-500 text-lg mb-10 max-w-md mx-auto">
+          <p className="text-[#9aa0a6] text-lg mb-10 max-w-md mx-auto">
             Clone the repo, flash a Pi, and bring your art to life.
           </p>
           <a
             href="https://github.com/alevizio/raspieyes"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-blue-500 text-white rounded-full font-medium text-lg hover:bg-blue-400 transition-all duration-300 hover:shadow-[0_0_32px_rgba(59,130,246,0.3)]"
+            className="inline-flex items-center gap-2 px-10 py-4 bg-[#8ab4f8] text-[#131314] rounded-full font-medium text-lg hover:bg-[#aecbfa] transition-all duration-300 hover:shadow-[0_0_32px_rgba(138,180,248,0.3)]"
           >
             ⭐ Star on GitHub
           </a>
@@ -410,21 +410,21 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-16 px-6 border-t border-zinc-800/40 text-center">
-        <p className="text-zinc-500 text-sm">
+      <footer className="py-16 px-6 border-t border-[#303134]/40 text-center">
+        <p className="text-[#9aa0a6] text-sm">
           Built for{" "}
           <span className="text-orange-400/80">Burning Man 2026</span> by{" "}
           <a
             href="https://github.com/alevizio"
-            className="text-zinc-300 hover:text-white transition-colors"
+            className="text-[#e3e3e3] hover:text-white transition-colors"
           >
             Alejandro
           </a>
         </p>
-        <p className="mt-3 text-zinc-600 text-xs">
+        <p className="mt-3 text-[#9aa0a6]/60 text-xs">
           <a
             href="https://github.com/alevizio/raspieyes"
-            className="hover:text-zinc-400 transition-colors"
+            className="hover:text-[#bdc1c6] transition-colors"
           >
             GitHub
           </a>
