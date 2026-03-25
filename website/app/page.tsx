@@ -267,7 +267,7 @@ export default function Home() {
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
               <div className="group p-7 rounded-2xl bg-[#1e1f20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
-                <div className="w-16 h-16 rounded-2xl bg-[#282a2c]/60 flex items-center justify-center mb-5 group-hover:bg-[#303134]/60 transition-colors">
+                <div className="mb-5">
                   <img src={f.icon} alt="" width={36} height={36} className="invert opacity-70" />
                 </div>
                 <h3 className="text-base font-semibold mb-2 text-[#e3e3e3]">
