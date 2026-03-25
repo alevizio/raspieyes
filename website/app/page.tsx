@@ -244,7 +244,7 @@ export default function Home() {
             key={b.label}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1e1f20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
           >
-            <img src={b.icon} alt="" width={16} height={16} className="invert opacity-60" />
+            <img src={b.icon} alt="" width={20} height={20} className="invert opacity-60" />
             {b.label}
           </span>
         ))}
@@ -265,8 +265,8 @@ export default function Home() {
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
               <div className="group p-7 rounded-2xl bg-[#1e1f20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
-                <div className="w-11 h-11 rounded-xl bg-[#282a2c]/60 flex items-center justify-center mb-4 group-hover:bg-[#303134]/60 transition-colors">
-                  <img src={f.icon} alt="" width={22} height={22} className="invert opacity-70" />
+                <div className="w-16 h-16 rounded-2xl bg-[#282a2c]/60 flex items-center justify-center mb-5 group-hover:bg-[#303134]/60 transition-colors">
+                  <img src={f.icon} alt="" width={36} height={36} className="invert opacity-70" />
                 </div>
                 <h3 className="text-base font-semibold mb-2 text-[#e3e3e3]">
                   {f.title}
