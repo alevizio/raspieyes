@@ -14,36 +14,38 @@ const HARDWARE_BOM = [
   { item: "USB Webcam with Stereo Mic", price: "~$30", note: "Optional — audio reactivity" },
 ];
 
+const ICON_BASE = "https://alevizio.github.io/icons/svg/pixel";
+
 const FEATURES = [
   {
     title: "Face Tracking",
     description: "OpenCV DNN + MediaPipe detect faces and follow them with multi-layer parallax.",
-    icon: "👤",
+    icon: `${ICON_BASE}/users/user-single-aim.svg`,
   },
   {
     title: "Depth Reactive",
     description: "Pupil dilates dramatically as you get closer. Constricts when you walk away.",
-    icon: "📏",
+    icon: `${ICON_BASE}/interface-essential/interface-essential-zoom-in.svg`,
   },
   {
     title: "Audio Reactive",
     description: "Pulses to bass beats, startles at loud sounds, looks toward noise direction.",
-    icon: "🔊",
+    icon: `${ICON_BASE}/interface-essential/interface-essential-sound.svg`,
   },
   {
     title: "Motion Detection",
     description: "Tracks hands, bodies, any movement — not just faces.",
-    icon: "🖐️",
+    icon: `${ICON_BASE}/hand-signs/hand.svg`,
   },
   {
     title: "60fps Rendering",
     description: "Smooth parallax animation with predict-to-vsync pipeline on Raspberry Pi.",
-    icon: "🎯",
+    icon: `${ICON_BASE}/business/business-product-target.svg`,
   },
   {
     title: "Open Source",
     description: "MIT licensed. Build your own for Burning Man, Halloween, or art installations.",
-    icon: "💻",
+    icon: `${ICON_BASE}/coding-apps-websites/coding-apps-websites-programming-hold-code.svg`,
   },
 ];
 
@@ -56,10 +58,10 @@ const REFERENCES = [
 ];
 
 const BADGES = [
-  { label: "Open Source", icon: "⚡" },
-  { label: "60fps", icon: "🎯" },
-  { label: "MIT Licensed", icon: "📜" },
-  { label: "Raspberry Pi 5", icon: "🍓" },
+  { label: "Open Source", icon: `${ICON_BASE}/interface-essential/interface-essential-flash.svg` },
+  { label: "60fps", icon: `${ICON_BASE}/business/business-product-target.svg` },
+  { label: "MIT Licensed", icon: `${ICON_BASE}/interface-essential/interface-essential-lock-shield.svg` },
+  { label: "Raspberry Pi 5", icon: `${ICON_BASE}/technology/technology-robot-ai.svg` },
 ];
 
 const FAQ = [
@@ -211,9 +213,8 @@ export default function Home() {
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-4">
             raspi<em className="not-italic text-[#8ab4f8]">eyes</em>
           </h1>
-          <p className="text-lg md:text-2xl text-[#9aa0a6] max-w-lg mx-auto leading-relaxed">
-            Lifelike eyes that follow you.{" "}
-            <span className="text-[#bdc1c6]">Built with Raspberry Pi.</span>
+          <p className="text-lg md:text-2xl text-[#9aa0a6] max-w-2xl mx-auto leading-relaxed whitespace-nowrap">
+            Lifelike eyes that follow you. <span className="text-[#bdc1c6]">Built with Raspberry Pi.</span>
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -243,7 +244,7 @@ export default function Home() {
             key={b.label}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#303134]/60 bg-[#1e1f20]/80 text-sm text-[#bdc1c6] backdrop-blur-sm"
           >
-            <span>{b.icon}</span>
+            <img src={b.icon} alt="" width={16} height={16} className="invert opacity-60" />
             {b.label}
           </span>
         ))}
@@ -264,8 +265,8 @@ export default function Home() {
           {FEATURES.map((f, i) => (
             <FadeIn key={f.title} delay={i * 80}>
               <div className="group p-7 rounded-2xl bg-[#1e1f20]/80 border border-[#303134]/50 hover:border-[#444649]/60 transition-all duration-300">
-                <div className="w-11 h-11 rounded-xl bg-[#282a2c]/60 flex items-center justify-center text-2xl mb-4 group-hover:bg-[#303134]/60 transition-colors">
-                  {f.icon}
+                <div className="w-11 h-11 rounded-xl bg-[#282a2c]/60 flex items-center justify-center mb-4 group-hover:bg-[#303134]/60 transition-colors">
+                  <img src={f.icon} alt="" width={22} height={22} className="invert opacity-70" />
                 </div>
                 <h3 className="text-base font-semibold mb-2 text-[#e3e3e3]">
                   {f.title}
