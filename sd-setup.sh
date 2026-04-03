@@ -55,27 +55,43 @@ rm "$TMPSHADOW"
 # Step 3: Create raspieyes directory and copy files
 echo "[3/7] Creating directories..."
 $DEBUGFS -w -R "mkdir $PI_HOME/raspieyes" "$DISK" 2>/dev/null || true
+while IFS= read -r dir; do
+    [[ "$dir" == "." ]] && continue
+    rel_dir="${dir#./}"
+    $DEBUGFS -w -R "mkdir $PI_HOME/raspieyes/$rel_dir" "$DISK" 2>/dev/null || true
+done < <(
+    cd "$PROJECT_DIR" && find . -type d \
+        ! -path './.git*' \
+        ! -path './website/node_modules*' \
+        ! -path './website/.next*' | sort
+)
 
 echo "[4/7] Copying project files..."
-for f in eye.mp4 play.sh config.txt setup.sh raspieyes.service README.md; do
-    echo "  $f"
-    $DEBUGFS -w -R "write $PROJECT_DIR/$f $PI_HOME/raspieyes/$f" "$DISK" 2>/dev/null
-done
+while IFS= read -r file; do
+    rel_file="${file#./}"
+    echo "  $rel_file"
+    $DEBUGFS -w -R "write $PROJECT_DIR/$rel_file $PI_HOME/raspieyes/$rel_file" "$DISK" 2>/dev/null
+done < <(
+    cd "$PROJECT_DIR" && find . -type f \
+        ! -path './.git*' \
+        ! -path './website/node_modules*' \
+        ! -path './website/.next*' | sort
+)
 
-# Step 5: Set up XDG autostart (same mechanism the Pi wizard uses — proven to work)
-echo "[5/7] Setting up XDG autostart..."
+# Step 5: Set up one-time XDG autostart to run setup.sh on first login
+echo "[5/7] Setting up first-boot setup runner..."
 TMPAUTO=$(mktemp)
 cat > "$TMPAUTO" <<EOF
 [Desktop Entry]
 Type=Application
 Name=raspieyes
-Exec=$PI_HOME/raspieyes/play.sh
+Exec=/bin/bash -lc '$PI_HOME/raspieyes/setup.sh'
 X-GNOME-Autostart-enabled=true
 NoDisplay=true
 EOF
 $DEBUGFS -w -R "write $TMPAUTO /etc/xdg/autostart/raspieyes.desktop" "$DISK" 2>/dev/null
 rm "$TMPAUTO"
-echo "  XDG autostart configured"
+echo "  First-boot setup runner configured"
 
 # Step 6: Enable SSH
 echo "[6/7] Enabling SSH..."
@@ -89,11 +105,24 @@ PI_UID=$(echo "$UIDGID" | cut -d: -f1)
 PI_GID=$(echo "$UIDGID" | cut -d: -f2)
 echo "  User $PI_USER: UID=$PI_UID GID=$PI_GID"
 
-for f in raspieyes raspieyes/eye.mp4 raspieyes/play.sh raspieyes/config.txt raspieyes/setup.sh raspieyes/raspieyes.service raspieyes/README.md .config .config/labwc .config/labwc/autostart; do
-    $DEBUGFS -w -R "set_inode_field $PI_HOME/$f uid $PI_UID" "$DISK" 2>/dev/null || true
-    $DEBUGFS -w -R "set_inode_field $PI_HOME/$f gid $PI_GID" "$DISK" 2>/dev/null || true
+$DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes uid $PI_UID" "$DISK" 2>/dev/null || true
+$DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes gid $PI_GID" "$DISK" 2>/dev/null || true
+
+while IFS= read -r path; do
+    [[ "$path" == "." ]] && continue
+    rel_path="${path#./}"
+    $DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes/$rel_path uid $PI_UID" "$DISK" 2>/dev/null || true
+    $DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes/$rel_path gid $PI_GID" "$DISK" 2>/dev/null || true
+done < <(
+    cd "$PROJECT_DIR" && find . \( -type d -o -type f \) \
+        ! -path './.git*' \
+        ! -path './website/node_modules*' \
+        ! -path './website/.next*' | sort
+)
+
+for executable in play.sh setup.sh deploy.sh raspieyes-init.sh sd-setup.sh; do
+    $DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes/$executable mode 0100755" "$DISK" 2>/dev/null || true
 done
-$DEBUGFS -w -R "set_inode_field $PI_HOME/raspieyes/play.sh mode 0100755" "$DISK" 2>/dev/null || true
 
 echo ""
 echo "=== Setup complete! ==="
@@ -101,6 +130,7 @@ echo ""
 echo "Now:"
 echo "  1. Eject the SD card (run: diskutil eject /Volumes/bootfs)"
 echo "  2. Put it in the Pi and power on"
-echo "  3. The eye video should play fullscreen!"
+echo "  3. Log into the Pi once so the one-time setup can run"
+echo "  4. The Pi will reboot and then start raspieyes automatically"
 echo ""
 echo "SSH credentials: user=pi password=raspberry"
