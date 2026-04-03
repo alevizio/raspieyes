@@ -68,6 +68,7 @@ if [[ "${RENDER_MODE:-video}" == "parallax" ]]; then
     [[ -n "${PUPIL_PARALLAX:-}" ]] && RENDERER_ARGS+=(--pupil-parallax "$PUPIL_PARALLAX")
     [[ -n "${MAX_OFFSET:-}" ]] && RENDERER_ARGS+=(--max-offset "$MAX_OFFSET")
     [[ -n "${LERP_SPEED:-}" ]] && RENDERER_ARGS+=(--lerp-speed "$LERP_SPEED")
+    [[ -n "${PRESENCE_TIMEOUT:-}" ]] && RENDERER_ARGS+=(--presence-timeout "$PRESENCE_TIMEOUT")
     RENDERER_ARGS+=(--detection-mode "${DETECTION_MODE:-motion}")
     [[ -n "${MIN_CONTOUR_AREA:-}" ]] && RENDERER_ARGS+=(--min-contour-area "$MIN_CONTOUR_AREA")
     [[ "${TRACKING:-no}" != "yes" ]] && RENDERER_ARGS+=(--no-camera)
@@ -276,6 +277,11 @@ launch_mpv() {
 # Switch playlist via IPC without restarting mpv (no black screen)
 switch_playlist_ipc() {
     local -a new_playlist=("${PLAYLIST[@]}")
+
+    if ! command -v socat &>/dev/null; then
+        echo "  socat not installed, falling back to mpv restart"
+        return 1
+    fi
 
     for sock in "${MPV_SOCKETS[@]}"; do
         if [[ ! -S "$sock" ]]; then

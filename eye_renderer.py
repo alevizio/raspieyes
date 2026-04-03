@@ -120,6 +120,7 @@ def parse_args():
     p.add_argument("--lerp-speed", type=float, default=DEFAULT_LERP_SPEED)
     p.add_argument("--capture-width", type=int, default=640)
     p.add_argument("--capture-height", type=int, default=480)
+    p.add_argument("--presence-timeout", type=float, default=PRESENCE_TIMEOUT)
     return p.parse_args()
 
 
@@ -130,8 +131,9 @@ def parse_args():
 class TrackingState:
     """VR-style predict-to-vsync tracking state with velocity estimation."""
 
-    def __init__(self):
+    def __init__(self, presence_timeout=PRESENCE_TIMEOUT):
         self._lock = threading.Lock()
+        self.presence_timeout = presence_timeout
         self.state = "idle"
         self.pos_x = 0.0       # last observed position
         self.pos_y = 0.0
@@ -170,7 +172,7 @@ class TrackingState:
         with self._lock:
             t_now = time.monotonic()
             staleness = t_now - self.last_obs_time if self.last_obs_time > 0 else 999
-            state = self.state if staleness < PRESENCE_TIMEOUT else "idle"
+            state = self.state if staleness < self.presence_timeout else "idle"
             return (state, self.pos_x, self.pos_y,
                     self.face_w, self.last_obs_time)
 
@@ -328,7 +330,7 @@ def detection_loop(tracking, args):
         max_distance=180,
         process_noise=0.05,
         measurement_noise=0.5,
-        presence_timeout=PRESENCE_TIMEOUT,
+        presence_timeout=args.presence_timeout,
     )
 
     # Try MediaPipe first (much better than Haar), fall back to Haar
@@ -500,14 +502,14 @@ def detection_loop(tracking, args):
                 # No face — try motion detection (hands, bodies, movement)
                 motion_blobs = detect_all_motion_positions(
                     bg_subtractor, gray, w, h,
-                    min_contour_area=300, _mask_cache=mask,
+                    min_contour_area=args.min_contour_area, _mask_cache=mask,
                 )
-                if motion_blobs:
-                    biggest = max(motion_blobs, key=lambda b: b[2])
-                    cx_px, cy_px, blob_w = biggest
-                    nx = (cx_px / w - 0.5) * 2.0
-                    ny = (cy_px / h - 0.5) * 2.0
-                    nw = blob_w / w
+                now = time.monotonic()
+                motion_target = centroid_tracker.update(motion_blobs, w, h)
+                within_presence_timeout = (now - last_face_time) < args.presence_timeout
+
+                if motion_target is not None and (motion_blobs or within_presence_timeout):
+                    nx, ny, nw = motion_target
                     # Slower EMA for motion (noisier than face detection)
                     s1_x += (nx - s1_x) * 0.3
                     s1_y += (ny - s1_y) * 0.3
@@ -515,8 +517,9 @@ def detection_loop(tracking, args):
                     s2_y += (s1_y - s2_y) * 0.2
                     tracking.update("detected", -s2_x, s2_y, nw * 0.5)
                     prev_x, prev_y = s2_x, s2_y
-                    last_face_time = time.monotonic()
-                elif time.monotonic() - last_face_time < PRESENCE_TIMEOUT:
+                    if motion_blobs:
+                        last_face_time = now
+                elif within_presence_timeout:
                     pass  # hold last position
                 else:
                     tracking.update("idle")
@@ -1326,7 +1329,7 @@ def main():
     layers = EyeLayers(args.eye_color)
     print("[renderer] Layers ready", flush=True)
 
-    tracking = TrackingState()
+    tracking = TrackingState(args.presence_timeout)
     audio_st = AudioState()
 
     use_mouse = getattr(args, "mouse", False)

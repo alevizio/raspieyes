@@ -3,13 +3,22 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VIDEOS_DIR="$SCRIPT_DIR/videos"
+BOOTSTRAP_AUTOSTART="/etc/xdg/autostart/raspieyes.desktop"
+CURRENT_USER="${RASPIEYES_USER:-$(logname 2>/dev/null || whoami)}"
+CURRENT_HOME="${RASPIEYES_HOME:-$(eval echo "~$CURRENT_USER")}"
+CURRENT_UID=$(id -u "$CURRENT_USER")
 
 echo "=== raspieyes setup ==="
+
+if sudo test -f "$BOOTSTRAP_AUTOSTART" && sudo grep -q "$SCRIPT_DIR/setup.sh" "$BOOTSTRAP_AUTOSTART"; then
+    echo "[bootstrap] Removing one-time setup autostart..."
+    sudo rm -f "$BOOTSTRAP_AUTOSTART"
+fi
 
 # 1. Install mpv + unclutter (hide cursor)
 echo "[1/5] Installing packages..."
 sudo apt update -qq
-sudo apt install -y mpv unclutter-xfixes wlr-randr ffmpeg
+sudo apt install -y mpv unclutter-xfixes wlr-randr ffmpeg socat
 
 # Install eye tracking dependencies if camera is connected
 if [[ -e /dev/video0 ]] || ls /dev/video* &>/dev/null 2>&1; then
@@ -44,9 +53,6 @@ chmod +x "$SCRIPT_DIR/play.sh"
 # 4. Install systemd service (fallback) + labwc autostart (primary)
 echo "[4/5] Installing autostart..."
 
-CURRENT_USER=$(whoami)
-CURRENT_UID=$(id -u)
-
 # --- Systemd service (fallback) ---
 cat > /tmp/raspieyes.service <<EOF
 [Unit]
@@ -75,7 +81,7 @@ sudo systemctl enable raspieyes.service
 echo "  Systemd service installed (fallback)"
 
 # --- labwc autostart (primary — runs after compositor is ready) ---
-LABWC_DIR="$HOME/.config/labwc"
+LABWC_DIR="$CURRENT_HOME/.config/labwc"
 AUTOSTART_FILE="$LABWC_DIR/autostart"
 mkdir -p "$LABWC_DIR"
 
@@ -93,6 +99,7 @@ unclutter --hide-on-touch &
 (sleep 2 && $SCRIPT_DIR/play.sh) &
 EOF
 echo "  labwc autostart configured (primary)"
+sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$LABWC_DIR"
 
 # Disable the systemd service since labwc autostart is primary
 # (keeps it installed but won't double-launch)
@@ -120,6 +127,7 @@ RCEOF
         echo "  Screen blanking disabled"
     fi
 fi
+sudo chown -R "$CURRENT_USER:$CURRENT_USER" "$LABWC_DIR"
 
 # 6. Power optimizations (for battery operation)
 echo "[6/6] Optimizing power consumption..."
