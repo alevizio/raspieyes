@@ -1,0 +1,62 @@
+{
+  "_comment": "Example hybrid frame: 2 large HDMI hero eyes + 10 small GC9A01 SPI eyes arranged on a ~1.8m x 1.2m wall-hung frame. Coordinates in millimeters, origin at frame center, +x=right, +y=down.",
+  "frame": {
+    "width_mm": 1800,
+    "height_mm": 1200
+  },
+  "cameras": [
+    {
+      "id": "top_left",
+      "x_mm": -700,
+      "y_mm": -560,
+      "z_mm": 0,
+      "hfov_deg": 102,
+      "vfov_deg": 67
+    },
+    {
+      "id": "top_right",
+      "x_mm": 700,
+      "y_mm": -560,
+      "z_mm": 0,
+      "hfov_deg": 102,
+      "vfov_deg": 67
+    }
+  ],
+  "eyes": [
+    {
+      "id": "hero_left",
+      "x_mm": -350,
+      "y_mm": 0,
+      "diameter_mm": 127,
+      "render_size_px": 1080,
+      "display_type": "hdmi",
+      "device": "HDMI-A-1",
+      "is_left_eye": true,
+      "hdmi_rect": [0, 0, 1080, 1080]
+    },
+    {
+      "id": "hero_right",
+      "x_mm": 350,
+      "y_mm": 0,
+      "diameter_mm": 127,
+      "render_size_px": 1080,
+      "display_type": "hdmi",
+      "device": "HDMI-A-2",
+      "is_left_eye": false,
+      "hdmi_rect": [1080, 0, 1080, 1080]
+    },
+
+    { "id": "spi_tl_0", "x_mm": -800, "y_mm": -450, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi0.0:gpio25", "is_left_eye": true },
+    { "id": "spi_tl_1", "x_mm": -600, "y_mm": -480, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi0.0:gpio24", "is_left_eye": false },
+    { "id": "spi_tr_0", "x_mm":  600, "y_mm": -480, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi0.1:gpio23", "is_left_eye": true },
+    { "id": "spi_tr_1", "x_mm":  800, "y_mm": -450, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi0.1:gpio22", "is_left_eye": false },
+
+    { "id": "spi_ml_0", "x_mm": -750, "y_mm":   50, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.0:gpio27", "is_left_eye": true },
+    { "id": "spi_mr_0", "x_mm":  750, "y_mm":   50, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.0:gpio26", "is_left_eye": false },
+
+    { "id": "spi_bl_0", "x_mm": -700, "y_mm":  450, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.1:gpio21", "is_left_eye": true },
+    { "id": "spi_bl_1", "x_mm": -500, "y_mm":  480, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.1:gpio20", "is_left_eye": false },
+    { "id": "spi_br_0", "x_mm":  500, "y_mm":  480, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.2:gpio19", "is_left_eye": true },
+    { "id": "spi_br_1", "x_mm":  700, "y_mm":  450, "diameter_mm": 32, "render_size_px": 240, "display_type": "spi", "device": "spi1.2:gpio18", "is_left_eye": false }
+  ]
+}

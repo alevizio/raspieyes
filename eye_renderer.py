@@ -120,6 +120,10 @@ def parse_args():
     p.add_argument("--lerp-speed", type=float, default=DEFAULT_LERP_SPEED)
     p.add_argument("--capture-width", type=int, default=640)
     p.add_argument("--capture-height", type=int, default=480)
+    p.add_argument("--frame-layout", default=None,
+                   help="Path to a frame_layout.json describing a multi-eye "
+                        "installation. When set, eyes converge on the viewer "
+                        "using per-eye gaze math instead of mirroring.")
     return p.parse_args()
 
 
@@ -1214,16 +1218,26 @@ def _radial_clamp(dx, dy, max_r):
     return dx, dy
 
 
-def render_eye(surface, layers, anim, args, is_left_eye=True):
-    """Render a single eye with parallax, micro-saccades, and pupil dilation."""
+def render_eye(surface, layers, anim, args, is_left_eye=True, gaze_override=None):
+    """Render a single eye with parallax, micro-saccades, and pupil dilation.
+
+    gaze_override: optional (nx, ny) tuple in [-1, 1] replacing the shared
+    anim gaze target. Used by the multi-eye frame layout path so eyes at
+    different physical positions can converge on the same viewer.
+    """
     surface.fill((0, 0, 0))
 
     cx = SCREEN_SIZE // 2
     cy = SCREEN_SIZE // 2
 
+    if gaze_override is not None:
+        gx, gy = gaze_override
+    else:
+        gx, gy = anim.current_x, anim.current_y
+
     # Raw offsets from tracking
-    raw_x = anim.current_x * args.max_offset
-    raw_y = anim.current_y * args.max_offset
+    raw_x = gx * args.max_offset
+    raw_y = gy * args.max_offset
 
     # Micro-saccade jitter (applied to all layers uniformly)
     jitter_x = anim.micro_saccade_x * SACCADE_PIXEL_SCALE
@@ -1306,8 +1320,37 @@ def main():
     pygame.init()
     pygame.mouse.set_visible(False)
 
+    # --- Optional multi-eye frame layout (experimental) ---
+    layout = None
+    spi_drivers = []
+    if args.frame_layout:
+        from frame_layout import FrameLayout
+        from spi_display import SpiEyeDisplay
+        layout = FrameLayout.load(args.frame_layout)
+        print(f"[renderer] Loaded frame layout: "
+              f"{len(layout.hdmi_eyes())} HDMI + "
+              f"{len(layout.spi_eyes())} SPI eyes, "
+              f"{len(layout.cameras)} camera(s)", flush=True)
+        for e in layout.spi_eyes():
+            drv = SpiEyeDisplay(device=e.device, size_px=e.render_size_px)
+            drv.open()
+            spi_drivers.append((e, drv))
+
     dual_eye = not args.single_eye
-    if dual_eye:
+    if layout is not None:
+        # Size the HDMI window to the bounding box of the layout's HDMI eyes.
+        hdmi_eyes = layout.hdmi_eyes()
+        if hdmi_eyes:
+            max_right = max((e.hdmi_rect[0] + e.hdmi_rect[2])
+                            for e in hdmi_eyes if e.hdmi_rect) if any(
+                                e.hdmi_rect for e in hdmi_eyes) else SCREEN_SIZE
+            max_bottom = max((e.hdmi_rect[1] + e.hdmi_rect[3])
+                             for e in hdmi_eyes if e.hdmi_rect) if any(
+                                e.hdmi_rect for e in hdmi_eyes) else SCREEN_SIZE
+            window_size = (max_right, max_bottom)
+        else:
+            window_size = (SCREEN_SIZE, SCREEN_SIZE)
+    elif dual_eye:
         window_size = (SCREEN_SIZE * 2, SCREEN_SIZE)
     else:
         window_size = (SCREEN_SIZE, SCREEN_SIZE)
@@ -1346,7 +1389,15 @@ def main():
     anim = EyeAnimation(lerp_speed=args.lerp_speed)
     clock = pygame.time.Clock()
 
-    if dual_eye:
+    if layout is not None:
+        # Build HDMI sub-surfaces and an offscreen surface for SPI eyes.
+        layout_hdmi = []
+        for e in layout.hdmi_eyes():
+            rect = e.hdmi_rect or (0, 0, SCREEN_SIZE, SCREEN_SIZE)
+            layout_hdmi.append((e, screen.subsurface(rect)))
+        spi_offscreen = pygame.Surface((SCREEN_SIZE, SCREEN_SIZE)) if spi_drivers else None
+        primary_camera = layout.cameras[0] if layout.cameras else None
+    elif dual_eye:
         left_surf = screen.subsurface((0, 0, SCREEN_SIZE, SCREEN_SIZE))
         right_surf = screen.subsurface((SCREEN_SIZE, 0, SCREEN_SIZE, SCREEN_SIZE))
 
@@ -1378,7 +1429,31 @@ def main():
         audio_data = audio_st.get()
         anim.update(state, fx, fy, dt, face_w=fw, audio=audio_data)
 
-        if dual_eye:
+        if layout is not None:
+            # Resolve the shared viewer world position once per frame from
+            # the smoothed tracking state, then compute each eye's own gaze.
+            from frame_layout import project_face_to_world, eye_gaze_normalized
+            if primary_camera is not None:
+                world_xyz = project_face_to_world(
+                    anim.current_x, anim.current_y, fw, primary_camera)
+            else:
+                world_xyz = (anim.current_x * 1000.0,
+                             anim.current_y * 1000.0, 1000.0)
+
+            for eye_cfg, sub in layout_hdmi:
+                gaze = eye_gaze_normalized(eye_cfg, world_xyz)
+                render_eye(sub, layers, anim, args,
+                           is_left_eye=eye_cfg.is_left_eye,
+                           gaze_override=gaze)
+
+            if spi_drivers:
+                for eye_cfg, drv in spi_drivers:
+                    gaze = eye_gaze_normalized(eye_cfg, world_xyz)
+                    render_eye(spi_offscreen, layers, anim, args,
+                               is_left_eye=eye_cfg.is_left_eye,
+                               gaze_override=gaze)
+                    drv.push_surface(spi_offscreen)
+        elif dual_eye:
             render_eye(left_surf, layers, anim, args, is_left_eye=True)
             render_eye(right_surf, layers, anim, args, is_left_eye=False)
         else:

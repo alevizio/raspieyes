@@ -47,3 +47,9 @@ USB_WEBCAM=yes
 # PUPIL_PARALLAX=0.8
 # MAX_OFFSET=120
 # LERP_SPEED=5.0
+
+# --- Multi-eye frame (experimental) ---
+# Path to a frame_layout.json describing a rectangular frame populated with
+# many round displays of varying sizes. When set, all eyes converge on the
+# viewer using per-eye gaze math. Leave empty for the default 2-eye build.
+# FRAME_LAYOUT=/home/raspieyes/raspieyes/frame_layout.json
