@@ -6,3 +6,5 @@ videos/*.mkv
 videos/*.avi
 .stills/
 .DS_Store
+__pycache__/
+*.pyc
