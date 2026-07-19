@@ -1,0 +1,66 @@
+{
+  "$comment": "Single source of truth for the whole demo. All captures, TTS, composites, and every aspect-ratio render derive from this file. Durations in seconds; focus coordinates normalized 0-1 relative to the 16:9 master frame.",
+  "title": "Feature X in 60 seconds",
+  "app": {
+    "url": "http://localhost:3000",
+    "statePrep": "seed demo account; fixed clock 2026-07-01; viewport 1920x1080"
+  },
+  "format": {
+    "master": "16x9",
+    "renders": ["16x9", "9x16", "1x1"],
+    "fps": 30,
+    "targetSeconds": 60
+  },
+  "voice": {
+    "provider": "openai",
+    "voiceId": "onyx",
+    "wpm": 140,
+    "estimatedCostUsd": 0.02
+  },
+  "music": {
+    "file": null,
+    "license": "user-provided / confirmed royalty-free",
+    "duckDb": -8
+  },
+  "scenes": [
+    {
+      "id": "01-hook",
+      "durationSec": 4,
+      "action": "Land on dashboard, feature card visible. No interaction; slow zoom toward the card.",
+      "narration": "Meet the fastest way to ship a demo.",
+      "caption": "Meet the fastest way to ship a demo.",
+      "focus": { "x": 0.55, "y": 0.3, "w": 0.35, "h": 0.4 },
+      "zoom": { "from": 1.0, "to": 1.25 },
+      "capture": "demo/captures/scene-01.mp4",
+      "audio": "demo/audio/scene-01.mp3",
+      "measuredAudioSec": null,
+      "transition": "cut"
+    },
+    {
+      "id": "02-action",
+      "durationSec": 8,
+      "action": "Click 'New project' -> type name with 70ms key delay -> click Create. Hold 1.5s on the created project.",
+      "narration": "Create a project, and everything is wired up for you.",
+      "caption": "Everything wired up for you.",
+      "focus": { "x": 0.1, "y": 0.1, "w": 0.4, "h": 0.3 },
+      "zoom": { "from": 1.2, "to": 1.2 },
+      "clicks": [{ "t": 1.0, "x": 0.18, "y": 0.15 }, { "t": 6.2, "x": 0.34, "y": 0.42 }],
+      "capture": "demo/captures/scene-02.mp4",
+      "audio": "demo/audio/scene-02.mp3",
+      "measuredAudioSec": null,
+      "transition": "cut"
+    },
+    {
+      "id": "99-outro",
+      "durationSec": 3,
+      "action": "Title card (rendered in composite, no capture): logo + CTA.",
+      "narration": "Try it today.",
+      "caption": "yourapp.dev",
+      "focus": null,
+      "capture": null,
+      "audio": "demo/audio/scene-99.mp3",
+      "measuredAudioSec": null,
+      "transition": "fade"
+    }
+  ]
+}
